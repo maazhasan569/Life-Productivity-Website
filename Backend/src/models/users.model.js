@@ -3,10 +3,10 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 const usersSchema = new mongoose.Schema({
 
-    username: {
-        type: String,
-        unique: true,
-    },
+    // username: {
+    //     type: String,
+    //     unique: true,
+    // },
     password: {
         type: String,
         unique: true
@@ -65,3 +65,4 @@ usersSchema.method.generateRefreshToken = function () {
         }
     )
 }
+export const Users = mongoose.model("User" , usersSchema)
