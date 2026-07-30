@@ -3,19 +3,7 @@ import ApiError from "../../utils/ApiError";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import bcrpt from "bcrypt"
-const generateAccessAndRefreshToken = async (userId) => {
-    try {
-        const user = await Users.findById(userId)
-        const refreshToken = user.generateRefreshToken()
-        const accessToken = user.generateAccessToken()
-
-        user.refreshToken = refreshToken
-        await user.save({ validiateBeforeSave: false })
-        return { accessToken, refreshToken }
-    } catch (error) {
-        throw new ApiError(500, error.msg)
-    }
-}
+import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken";
 
 const options = {
     httpOnly: true,
