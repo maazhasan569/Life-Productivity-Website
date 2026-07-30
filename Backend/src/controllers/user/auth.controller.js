@@ -1,6 +1,8 @@
 import { Users } from "../../models/users.model";
 import ApiError from "../../utils/ApiError";
-
+import ApiResponse from "../../utils/ApiResponse";
+import asyncHandler from "../../utils/asyncHandler";
+import bcrpt from "bcrypt"
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await Users.findById(userId)
@@ -27,7 +29,7 @@ const createUserAccount = asyncHandler((req, res) => {
         }
     })
 
-    const isUserfound = Users.find({
+    const isUserfound = Users.findOne({
         $or: [{ email }, { password }]
     })
 
@@ -43,13 +45,13 @@ const createUserAccount = asyncHandler((req, res) => {
     const user = await user.create({
         email,
         password,
-    })
+    }).select("-password -refreshToken")
 
     if (!user) {
         throw new ApiError(500, "error occured while creating the user")
     }
 
-    const { accessToken, refreshToken } = user.generateAccessAndRefreshToken(user._id)
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
     return res.status(
         201
@@ -60,5 +62,37 @@ const createUserAccount = asyncHandler((req, res) => {
     ).json(
         new ApiResponse(201, "User created", { user, accessToken })
     )
+
+})
+
+const logInUser = asyncHandler((req, res) => {
+    //check user by comparing his email
+    //hash user eneterd password 
+    //compare with db password
+    //return which details is correct
+    //and which is not
+    const { email, password } = req.body;
+
+
+    const isUserPasswordValid = await isPasswordValid(password)
+    if (!isUserPasswordValid) {
+        throw new ApiError(404, "User not found by password")
+    }
+
+    const getUserByEmail = await Users.findOne({ email }).select("-password -refreshToken")
+    if (!getUserByEmail) {
+        throw new ApiError(404, "User not found by email")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken()
+    return res.status(200)
+        .cookie(
+            "accessToken", accessToken, options
+        ).cookie(
+            "refreshToken", refreshToken, options
+        ).json(
+            new ApiResponse(201, "user found", { getUserByEmail, accessToken })
+        )
+
 
 })
