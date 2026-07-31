@@ -6,6 +6,7 @@ const usersSchema = new mongoose.Schema({
     username: {
         type: String,
         unique: true,
+        lowercase : true
     },
     password: {
         type: String,
@@ -13,11 +14,11 @@ const usersSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        unique: true
+        unique: true,
+        lowercase : true
     },
     avatar: {
-        type: String,
-        required: true,
+        type: String, // cloudinary url
     },
 
     refreshToken: {
@@ -25,6 +26,9 @@ const usersSchema = new mongoose.Schema({
     },
     googleRefreshToken: {
         type: String
+    },
+    googleId : {
+        type : String
     }
 },
     { timestamps: true })
