@@ -26,6 +26,7 @@ const usersSchema = new mongoose.Schema({
     googleRefreshToken: {
         type: String
     }
+    
 },
     { timestamps: true })
 

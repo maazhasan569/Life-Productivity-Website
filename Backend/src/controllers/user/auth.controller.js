@@ -4,6 +4,7 @@ import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import bcrpt from "bcrypt"
 import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken";
+import jwt from "jsonwebtoken"
 
 const options = {
     httpOnly: true,
@@ -83,4 +84,34 @@ const logInUser = asyncHandler((req, res) => {
         )
 
 
+})
+
+const getNewAccessToken = asyncHandler(async (req, res) => {
+    //send refresh token from frontend
+    //verfiy the token to ensure it is valid
+    //get the user thro refreshToken
+    //match r-t from frontend with r-t from db
+    //if not matched
+    //expired or used up
+    //handover a new refreshtoken and a accesstoken
+    const incomingRefreshToken = req.cookie.refreshToken
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "refresh Token not found in cookie")
+    }
+    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+    const isUser = await Users.findById(decodedToken._id)
+    if (!isUser) {
+        throw new ApiError(401, "invalid refresh token")
+    }
+    if (!(incomingRefreshToken === isUser.refreshToken)) {
+        throw new ApiError(401, "refresh token expired or already used")
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(isUser._id)
+    return res.status(201)
+        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, options)
+        .json(
+            new ApiResponse(201, "created new access and refreshToken", { accessToken, refreshToken })
+        )
 })
