@@ -115,3 +115,9 @@ const getNewAccessToken = asyncHandler(async (req, res) => {
             new ApiResponse(201, "created new access and refreshToken", { accessToken, refreshToken })
         )
 })
+
+export {
+    createUserAccount,
+    logInUser,
+    getNewAccessToken
+}

@@ -45,55 +45,63 @@ const loginUrl = asyncHandler((req, res) => {
             "openid",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/userinfo.email",
-        ]
+        ],
+        state: 'action=login'
     })
 
     res.redirect(authUrl)
+    return res.status(302)
+        .json(
+            new ApiResponse(302, "auth url generated", authUrl)
+        )
 })
 
-const registorGoogleUser = asyncHandler((req, res, next) => {
-    const { code } = req.query;
-    const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
-    const isUserExist = await Users.find({ googleId: payload.sub })
-    if (isUserExist) {
-        return res.status(204).json(
-            new ApiResponse(204, "user already exists")
+const registorUrl = asyncHandler((req, res) => {
+
+    const authUrl = oauthClient.generateAuthUrl({
+        access_type: "offline",
+        prompt: "consent",
+        scope: [
+            "openid",
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+        ],
+        state: 'action=registor'
+    })
+
+    res.redirect(authUrl)
+    return res.status(302)
+        .json(
+            new ApiResponse(302, "auth url generated", authUrl)
         )
+})
+
+const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
+    //if user logging
+    //
+
+    const { code, state } = req.query;
+    const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
+    const isUser = await Users.findOne({ googleId: payload.sub })
+    if (!isUser && state === 'action=login') {
+        throw new ApiError(404, "User account not found")
     }
-    const createdUser = await Users.create({
+    if (isUser && state === 'action=registor') {
+        throw new ApiError(409, "account already present")
+    }
+    const user = isUser || await Users.create({
         googleId: payload.sub,
         username: payload.name,
         email: payload.email,
         googleRefreshToken: refresh_token,
     })
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(createdUser._id)
-    if (!createdUser) {
-        throw new ApiError(500, "failed to create the user")
-    }
-    return res.status(201)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(201, "user created", { createdUser, googleAccessToken: access_token, accessToken })
-        )
-
-})
-
-const loginGoogleUser = asyncHandler(async (req, res) => {
-    //get the auth code
-    //apply token func
-    //check if account exists
-
-    const { code } = req.query;
-    const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
-    const user = await Users.findOne({ googleId: payload.sub })
     if (!user) {
-        throw new ApiError(404, "User account not found")
+        throw new ApiError("failed to create new user do ")
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
     user.googleRefreshToken = refresh_token
     await user.save({ validiateBeforeSave: false })
-
+    const userKeyName = state === 'action=registor' ? "registoredUser" : "loggedInUser"
     return res.status(200)
         .cookie(
             "accessToken", accessToken, options
@@ -102,7 +110,7 @@ const loginGoogleUser = asyncHandler(async (req, res) => {
             "refreshToken", refreshToken, options
         ).json(
             new ApiResponse(200, "user logged in successfully", {
-                loggedInUser: user,
+                [userKeyName]: user,
                 accessToken,
                 googleAccessToken: access_token
             })
