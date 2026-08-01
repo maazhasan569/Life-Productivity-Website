@@ -144,5 +144,6 @@ const logOut = asyncHandler(async (req, res) => {
 export {
     createUserAccount,
     logInUser,
-    getNewAccessToken
+    getNewAccessToken,
+    logOut
 }

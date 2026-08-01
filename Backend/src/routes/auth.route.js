@@ -1,18 +1,22 @@
-import {Router} from "express"
-import { 
+import { Router } from "express"
+import {
     createUserAccount,
     logInUser,
-    getNewAccessToken
+    getNewAccessToken,
+    logOut
 } from "../controllers/auth/auth.controller"
-import { 
+import {
     loginUrl,
-    loginGoogleUser,
-    registorGoogleUser
- } from "../controllers/auth/oAuth2.controller"
-
+    registorUrl,
+    loginOrRegistorGoogleUser
+} from "../controllers/auth/oAuth2.controller"
+import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware"
 const router = Router()
 
-router.post("/create-account").post(createUserAccount)
-router.post("/login").post(logInUser)
-router.post("/refresh-token").get(getNewAccessToken)
-router.post("/google")
+router.route("/create-account").post(createUserAccount)
+router.route("/login").post(logInUser)
+router.route("/refresh-token").get(getNewAccessToken)
+router.route("/google/registor").post(loginUrl)
+router.route("/google/login").post(registorUrl)
+router.route("/google/callback").post(loginOrRegistorGoogleUser)
+router.route("/logout").post(verfiyJWTAccessToken,logOut)

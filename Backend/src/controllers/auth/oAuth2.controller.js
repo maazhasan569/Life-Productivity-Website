@@ -120,6 +120,6 @@ const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
 })
 export {
     loginUrl,
-    loginGoogleUser,
-    registorGoogleUser
+    registorUrl,
+    loginOrRegistorGoogleUser,
 }
