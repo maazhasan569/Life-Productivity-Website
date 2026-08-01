@@ -8,7 +8,7 @@ const connectDb = async () => {
             throw new ApiError(500 , "Db url not defined" )
         }
         const connectionInstance = await mongoose.connect(
-            `${process.env.DB_URL}/${DB_NAME}`
+            `${process.env.DB_URL}${DB_NAME}`
         )
         console.log(`MongoDB connection established ${connectionInstance.connection.host}`)
     }catch(err){

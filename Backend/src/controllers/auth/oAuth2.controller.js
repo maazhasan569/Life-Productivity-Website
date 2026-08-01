@@ -1,10 +1,9 @@
-import { oAuth2Client } from "google-auth-library"
-import asyncHandler from "../../utils/asyncHandler"
-import { verify } from "jsonwebtoken"
-import { Users } from "../../models/users.model"
-import ApiError from "../../utils/ApiError"
-import ApiResponse from "../../utils/ApiResponse"
-import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken"
+import { OAuth2Client } from "google-auth-library"
+import asyncHandler from "../../utils/asyncHandler.js"
+import { Users } from "../../models/users.model.js"
+import ApiError from "../../utils/ApiError.js"
+import ApiResponse from "../../utils/ApiResponse.js"
+import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js"
 
 const getGoogleTokenAndPayload = async (code) => {
 
@@ -26,7 +25,7 @@ const getGoogleTokenAndPayload = async (code) => {
     }
     return { payload, refresh_token: tokens.refresh_token, access_token: tokens.access_token }
 }
-const oauthClient = new oAuth2Client(
+const oauthClient = new OAuth2Client(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECION_UR

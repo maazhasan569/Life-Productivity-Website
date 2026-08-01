@@ -1,47 +1,49 @@
-import { Users } from "../../models/users.model";
-import ApiError from "../../utils/ApiError";
-import ApiResponse from "../../utils/ApiResponse";
-import asyncHandler from "../../utils/asyncHandler";
+import { Users } from "../../models/users.model.js";
+import ApiError from "../../utils/ApiError.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
 import bcrpt from "bcrypt"
-import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken";
+import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js";
 import jwt from "jsonwebtoken"
-import { oAuth2Client } from "google-auth-library"
+import { OAuth2Client } from "google-auth-library"
 const options = {
     httpOnly: true,
     secure: true
 }
-const createUserAccount = asyncHandler((req, res) => {
+const createUserAccount = asyncHandler(async(req, res) => {
     const { email, password } = req.body;
-    [email, password].some((inpFields) => {
-        if (!inpFields || inpFields.trim() === "") {
-            throw new ApiError(400, "enter all details")
-        }
+    const fieldCheck = [email, password].some((inpFields) => {
+        return !inpFields || inpFields.trim() === ""
     })
 
-    const isUserfound = Users.findOne({
-        $or: [{ email }, { password }]
-    })
-
+    if(fieldCheck){
+        throw new ApiError(400 , "All field required")
+    }
+    const isUserfound = await Users.findOne({email})
     if (isUserfound) {
         throw new ApiError(400,
             isUserfound.email === email ? "Email already in use"
                 : "password already in use"
         )
     }
-    if (!isUserfound) {
-        throw new ApiError
-    }
-    const user = await user.create({
+   
+    const user = await Users.create({
         email,
         password,
-    }).select("-password -refreshToken")
+    })
 
     if (!user) {
         throw new ApiError(500, "error occured while creating the user")
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
-
+    const registeredUser = await Users.findByIdAndUpdate(
+        user._id,
+        {
+            refreshToken,
+        },
+        {new : true}
+    ).select("-password -refreshToken")
     return res.status(
         201
     ).cookie(
@@ -54,7 +56,7 @@ const createUserAccount = asyncHandler((req, res) => {
 
 })
 
-const logInUser = asyncHandler((req, res) => {
+const logInUser = asyncHandler(async(req, res) => {
     //check user by comparing his email
     //hash user eneterd password 
     //compare with db password

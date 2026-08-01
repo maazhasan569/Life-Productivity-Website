@@ -4,13 +4,13 @@ import {
     logInUser,
     getNewAccessToken,
     logOut
-} from "../controllers/auth/auth.controller"
+} from "../controllers/auth/auth.controller.js"
 import {
     loginUrl,
     registorUrl,
     loginOrRegistorGoogleUser
-} from "../controllers/auth/oAuth2.controller"
-import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware"
+} from "../controllers/auth/OAuth2.controller.js"
+import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware.js"
 const router = Router()
 
 router.route("/create-account").post(createUserAccount)
@@ -20,3 +20,5 @@ router.route("/google/registor").post(loginUrl)
 router.route("/google/login").post(registorUrl)
 router.route("/google/callback").post(loginOrRegistorGoogleUser)
 router.route("/logout").post(verfiyJWTAccessToken,logOut)
+
+export default router
