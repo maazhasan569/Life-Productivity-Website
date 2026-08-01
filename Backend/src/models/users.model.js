@@ -3,21 +3,22 @@ import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 const usersSchema = new mongoose.Schema({
 
-    // username: {
-    //     type: String,
-    //     unique: true,
-    // },
+    username: {
+        type: String,
+        unique: true,
+        lowercase : true
+    },
     password: {
         type: String,
         unique: true
     },
     email: {
         type: String,
-        unique: true
+        unique: true,
+        lowercase : true
     },
     avatar: {
-        type: String,
-        required: true,
+        type: String, // cloudinary url
     },
 
     refreshToken: {
@@ -25,6 +26,9 @@ const usersSchema = new mongoose.Schema({
     },
     googleRefreshToken: {
         type: String
+    },
+    googleId : {
+        type : String
     }
     
 },
