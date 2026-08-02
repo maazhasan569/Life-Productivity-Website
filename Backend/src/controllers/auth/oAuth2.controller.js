@@ -4,6 +4,7 @@ import { Users } from "../../models/users.model.js"
 import ApiError from "../../utils/ApiError.js"
 import ApiResponse from "../../utils/ApiResponse.js"
 import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js"
+import { generateUsername } from "../../utils/generateUsername.js"
 
 const getGoogleTokenAndPayload = async (code) => {
 
@@ -75,6 +76,7 @@ const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
     const decodedState = decodeURIComponent(state)
     const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
     const email = payload.email
+    const username = await generateUsername(payload.email)
     const isUser = await Users.findOne({ email })
     if (!isUser && state === 'action=login') {
         throw new ApiError(404, "User account not found")
@@ -84,7 +86,7 @@ const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
     }
     const user = isUser || await Users.create({
         googleId: payload.sub,
-        username: payload.name,
+        username: username,
         email: payload.email,
         googleRefreshToken: refresh_token,
     })

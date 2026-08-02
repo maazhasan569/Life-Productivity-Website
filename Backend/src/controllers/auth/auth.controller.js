@@ -6,7 +6,7 @@ import bcrpt from "bcrypt"
 import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js";
 import jwt from "jsonwebtoken"
 import { OAuth2Client } from "google-auth-library"
-import * as crypto from 'node:crypto';
+import { generateUsername } from "../../utils/generateUsername.js";
 const options = {
     httpOnly: true,
     secure: true
@@ -27,13 +27,11 @@ const createUserAccount = asyncHandler(async (req, res) => {
                 : "password already in use"
         )
     }
-    const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-0]/g, '')
-    const randomSuffix = crypto.randomBytes(3).toString('hex');
-    const generatedUsername = `${baseUsername}_${randomSuffix}`;
+    const username = await generateUsername(email)
     const user = await Users.create({
         email,
         password,
-        username: generatedUsername,
+        username,
     })
 
     if (!user) {
