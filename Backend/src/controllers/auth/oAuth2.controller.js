@@ -13,22 +13,23 @@ const getGoogleTokenAndPayload = async (code) => {
         }
         const { tokens } = await oauthClient.getToken(code)
         oauthClient.setCredentials(tokens)
-        const ticket = oauthClient.verifyIdToken(
+        const ticket = await oauthClient.verifyIdToken(
             {
-                idToken: tokens._id.token,
+                idToken: tokens.id_token,
                 audience: process.env.CLIENT_ID
             }
         )
         const payload = ticket.getPayload()
+        return { payload, refresh_token: tokens.refresh_token, access_token: tokens.access_token }
     } catch (err) {
         throw new ApiError(401, "unauthorized token or expired")
     }
-    return { payload, refresh_token: tokens.refresh_token, access_token: tokens.access_token }
+    
 }
 const oauthClient = new OAuth2Client(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
-    process.env.REDIRECION_UR
+    process.env.REDIRECTION_URL
 )
 
 const options = {
@@ -39,7 +40,7 @@ const loginUrl = asyncHandler((req, res) => {
 
     const authUrl = oauthClient.generateAuthUrl({
         access_type: "offline",
-        prompt: "consent",
+        prompt: "select_account",
         scope: [
             "openid",
             "https://www.googleapis.com/auth/userinfo.profile",
@@ -49,43 +50,35 @@ const loginUrl = asyncHandler((req, res) => {
     })
 
     res.redirect(authUrl)
-    return res.status(302)
-        .json(
-            new ApiResponse(302, "auth url generated", authUrl)
-        )
 })
 
 const registorUrl = asyncHandler((req, res) => {
 
     const authUrl = oauthClient.generateAuthUrl({
         access_type: "offline",
-        prompt: "consent",
+        prompt: "select_account",
         scope: [
             "openid",
             "https://www.googleapis.com/auth/userinfo.profile",
             "https://www.googleapis.com/auth/userinfo.email",
         ],
-        state: 'action=registor'
+        state: 'action=register'
     })
 
     res.redirect(authUrl)
-    return res.status(302)
-        .json(
-            new ApiResponse(302, "auth url generated", authUrl)
-        )
 })
 
 const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
     //if user logging
     //
-
     const { code, state } = req.query;
     const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
-    const isUser = await Users.findOne({ googleId: payload.sub })
+    const email = payload.email
+    const isUser = await Users.findOne({ email })
     if (!isUser && state === 'action=login') {
         throw new ApiError(404, "User account not found")
     }
-    if (isUser && state === 'action=registor') {
+    if (isUser && state === 'action=register') {
         throw new ApiError(409, "account already present")
     }
     const user = isUser || await Users.create({
@@ -99,8 +92,8 @@ const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
     user.googleRefreshToken = refresh_token
-    await user.save({ validiateBeforeSave: false })
-    const userKeyName = state === 'action=registor' ? "registoredUser" : "loggedInUser"
+    await user.save({ validateBeforeSave: false })
+    const userKeyName = state === 'action=register' ? "registoredUser" : "loggedInUser"
     return res.status(200)
         .cookie(
             "accessToken", accessToken, options

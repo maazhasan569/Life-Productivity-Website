@@ -16,9 +16,9 @@ const router = Router()
 router.route("/create-account").post(createUserAccount)
 router.route("/login").post(logInUser)
 router.route("/refresh-token").get(getNewAccessToken)
-router.route("/google/registor").post(loginUrl)
-router.route("/google/login").post(registorUrl)
-router.route("/google/callback").post(loginOrRegistorGoogleUser)
+router.route("/google/registor").get(loginUrl)
+router.route("/google/login").get(registorUrl)
+router.route("/google/callback").get(loginOrRegistorGoogleUser)
 router.route("/logout").post(verfiyJWTAccessToken,logOut)
 
 export default router
