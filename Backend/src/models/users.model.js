@@ -10,7 +10,8 @@ const usersSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        unique: true
+        sparse : true
+        
     },
     email: {
         type: String,
@@ -23,12 +24,19 @@ const usersSchema = new mongoose.Schema({
 
     refreshToken: {
         type: String,
+        default : null,
+        sparse : true
     },
     googleRefreshToken: {
-        type: String
+        type: String,
+        default : null,
+        sparse : true
     },
     googleId : {
-        type : String
+        type : String,
+        default : null,
+        unique : true,
+        sparse : true
     }
 },
     { timestamps: true })
