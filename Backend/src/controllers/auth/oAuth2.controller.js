@@ -24,7 +24,7 @@ const getGoogleTokenAndPayload = async (code) => {
     } catch (err) {
         throw new ApiError(401, "unauthorized token or expired")
     }
-    
+
 }
 const oauthClient = new OAuth2Client(
     process.env.CLIENT_ID,
@@ -72,6 +72,7 @@ const loginOrRegistorGoogleUser = asyncHandler(async (req, res) => {
     //if user logging
     //
     const { code, state } = req.query;
+    const decodedState = decodeURIComponent(state)
     const { payload, refresh_token, access_token } = await getGoogleTokenAndPayload(code)
     const email = payload.email
     const isUser = await Users.findOne({ email })
