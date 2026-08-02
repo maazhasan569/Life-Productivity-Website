@@ -73,13 +73,12 @@ const logInUser = asyncHandler(async (req, res) => {
     if (!getUserByEmail) {
         throw new ApiError(404, "User not found by email")
     }
-    console.log(`user password = ${password}`)
     const isUserPasswordValid = await getUserByEmail.isPasswordValid(password)
-    console.log(`user password = ${isUserPasswordValid}`)
     if (!isUserPasswordValid) {
         throw new ApiError(404, "User not found by password")
     }
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(getUserByEmail._id)
+    console.log(refreshToken)
     const loggedInUser = await Users.findById(getUserByEmail._id).select("-password -refreshToken")
     return res.status(200)
         .cookie(
@@ -101,12 +100,12 @@ const getNewAccessToken = asyncHandler(async (req, res) => {
     //if not matched
     //expired or used up
     //handover a new refreshtoken and a accesstoken
-    const incomingRefreshToken = req.cookie.refreshToken
+    const incomingRefreshToken = req.cookies?.refreshToken
     if (!incomingRefreshToken) {
         throw new ApiError(401, "refresh Token not found in cookie")
     }
     const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-    const isUser = await Users.findById(decodedToken._id)
+    const isUser = await Users.findById(decodedToken.userId)
     if (!isUser) {
         throw new ApiError(401, "invalid refresh token")
     }
@@ -115,11 +114,13 @@ const getNewAccessToken = asyncHandler(async (req, res) => {
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(isUser._id)
+    console.log(refreshToken)
+
     return res.status(201)
         .cookie("refreshToken", refreshToken, options)
         .cookie("accessToken", accessToken, options)
         .json(
-            new ApiResponse(201, "created new access and refreshToken", { accessToken, refreshToken })
+            new ApiResponse(201, "created new access and refreshToken", { accessToken })
         )
 })
 
