@@ -36,29 +36,28 @@ const usersSchema = new mongoose.Schema({
 
 usersSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
-    await bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 10)
 })
 
-usersSchema.method.isPasswordValid = async function (password) {
-    await bcrypt.compare(password, this.password)
+usersSchema.methods.isPasswordValid = async function (passcode) {
+    return await bcrypt.compare(passcode, this.password)
 }
 
-usersSchema.method.generateAccessToken = function () {
+usersSchema.methods.generateAccessToken = function () {
 
     return jwt.sign(
         {
             username: this.username,
             password: this.password,
             email: this.email,
-            avatar: this.avatar,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
-usersSchema.method.generateRefreshToken = function () {
+usersSchema.methods.generateRefreshToken = function () {
 
     return jwt.sign(
         {
@@ -66,7 +65,7 @@ usersSchema.method.generateRefreshToken = function () {
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
 }

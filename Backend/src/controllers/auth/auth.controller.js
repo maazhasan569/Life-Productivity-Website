@@ -6,30 +6,34 @@ import bcrpt from "bcrypt"
 import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js";
 import jwt from "jsonwebtoken"
 import { OAuth2Client } from "google-auth-library"
+import * as crypto from 'node:crypto';
 const options = {
     httpOnly: true,
     secure: true
 }
-const createUserAccount = asyncHandler(async(req, res) => {
+const createUserAccount = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const fieldCheck = [email, password].some((inpFields) => {
         return !inpFields || inpFields.trim() === ""
     })
 
-    if(fieldCheck){
-        throw new ApiError(400 , "All field required")
+    if (fieldCheck) {
+        throw new ApiError(400, "All field required")
     }
-    const isUserfound = await Users.findOne({email})
+    const isUserfound = await Users.findOne({ email })
     if (isUserfound) {
         throw new ApiError(400,
             isUserfound.email === email ? "Email already in use"
                 : "password already in use"
         )
     }
-   
+    const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-0]/g, '')
+    const randomSuffix = crypto.randomBytes(3).toString('hex');
+    const generatedUsername = `${baseUsername}_${randomSuffix}`;
     const user = await Users.create({
         email,
         password,
+        username: generatedUsername,
     })
 
     if (!user) {
@@ -42,7 +46,7 @@ const createUserAccount = asyncHandler(async(req, res) => {
         {
             refreshToken,
         },
-        {new : true}
+        { new: true }
     ).select("-password -refreshToken")
     return res.status(
         201
@@ -56,7 +60,7 @@ const createUserAccount = asyncHandler(async(req, res) => {
 
 })
 
-const logInUser = asyncHandler(async(req, res) => {
+const logInUser = asyncHandler(async (req, res) => {
     //check user by comparing his email
     //hash user eneterd password 
     //compare with db password
@@ -65,24 +69,25 @@ const logInUser = asyncHandler(async(req, res) => {
     const { email, password } = req.body;
 
 
-    const isUserPasswordValid = await isPasswordValid(password)
-    if (!isUserPasswordValid) {
-        throw new ApiError(404, "User not found by password")
-    }
-
-    const getUserByEmail = await Users.findOne({ email }).select("-password -refreshToken")
+    const getUserByEmail = await Users.findOne({ email })
     if (!getUserByEmail) {
         throw new ApiError(404, "User not found by email")
     }
-
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken()
+    console.log(`user password = ${password}`)
+    const isUserPasswordValid = await getUserByEmail.isPasswordValid(password)
+    console.log(`user password = ${isUserPasswordValid}`)
+    if (!isUserPasswordValid) {
+        throw new ApiError(404, "User not found by password")
+    }
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(getUserByEmail._id)
+    const loggedInUser = await Users.findById(getUserByEmail._id).select("-password -refreshToken")
     return res.status(200)
         .cookie(
             "accessToken", accessToken, options
         ).cookie(
             "refreshToken", refreshToken, options
         ).json(
-            new ApiResponse(201, "user found", { getUserByEmail, accessToken })
+            new ApiResponse(201, "user found", { loggedInUser, accessToken })
         )
 
 
@@ -126,21 +131,21 @@ const logOut = asyncHandler(async (req, res) => {
         process.env.CLIENT_SECRET,
         process.env.REDIRECION_URL
     )
-    oAuthClient.setCredentials({refreshToken : user.refreshToken})
+    oAuthClient.setCredentials({ refreshToken: user.refreshToken })
     await oAuthClient.revokeCredentials()
     await Users.findByIdAndUpdate(
         user._id,
         {
-            refreshToken : null,
-            googleRefreshToken : null
+            refreshToken: null,
+            googleRefreshToken: null
         }
     )
     res.status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken" , options)
-    .json(
-        new ApiResponse(200 , "user logged out", user)
-    )
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(
+            new ApiResponse(200, "user logged out", user)
+        )
 })
 
 export {
