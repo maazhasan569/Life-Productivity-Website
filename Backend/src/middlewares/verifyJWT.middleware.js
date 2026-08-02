@@ -5,14 +5,13 @@ import jwt from "jsonwebtoken"
 
 export const verfiyJWTAccessToken = asyncHandler(async(req,res,next) => {
     try{
-        const accessToken = req.cookie.accessToken || req.header("Authorization")
+        const accessToken = req.cookies.accessToken || req.header("Authorization")
     .replace("Bearer " , "")
-    
     if(!accessToken){
         throw new ApiError(401 , "Unauthorized req - token not found")
     }
     const decodedToken = jwt.verify(accessToken , process.env.ACCESS_TOKEN_SECRET)
-    const isUser = await Users.findById(decodedToken._id)
+    const isUser = await Users.findById(decodedToken.userId)
     if(!isUser){
         throw new ApiError(401 , "invalid accesstoken")
     }

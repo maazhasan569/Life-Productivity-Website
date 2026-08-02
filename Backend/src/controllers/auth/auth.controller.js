@@ -125,25 +125,27 @@ const getNewAccessToken = asyncHandler(async (req, res) => {
 //logout user, del jwt and googletokens
 const logOut = asyncHandler(async (req, res) => {
     const user = req.user;
-    const oAuthClient = new OAuth2Client(
+     const oAuthClient = new OAuth2Client(
         process.env.CLIENT_ID,
         process.env.CLIENT_SECRET,
         process.env.REDIRECION_URL
     )
-    oAuthClient.setCredentials({ refreshToken: user.refreshToken })
-    await oAuthClient.revokeCredentials()
+    
+    oAuthClient.setCredentials({ refresh_token: user.refreshToken })
+     await oAuthClient.revokeCredentials()
     await Users.findByIdAndUpdate(
         user._id,
         {
             refreshToken: null,
             googleRefreshToken: null
-        }
+        },
+
     )
     res.status(200)
         .clearCookie("accessToken", options)
         .clearCookie("refreshToken", options)
         .json(
-            new ApiResponse(200, "user logged out", user)
+            new ApiResponse(200, "user logged out", {})
         )
 })
 
