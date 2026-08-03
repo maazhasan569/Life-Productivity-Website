@@ -8,6 +8,19 @@ const usersSchema = new mongoose.Schema({
         unique: true,
         lowercase : true
     },
+    identity : {
+        type : String,
+        required : true,
+    },
+    income : {
+        type : Number,
+        enum : ["Student" , "Working Adults" , "Retires" ],
+        required : true
+    },
+    currency : {
+        type : String,
+        required : true,
+    },
     password: {
         type: String,
         default : undefined,

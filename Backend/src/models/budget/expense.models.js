@@ -13,10 +13,7 @@ const expenseSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    // salary : {
-    //     type : Number,
-    //     enum : ["monthly" , "yearly"]
-    // }
+    //
 } , {timestamps : true})
 
 export const Expense = mongoose.model("Expense" , expenseSchema)

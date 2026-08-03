@@ -8,11 +8,17 @@ const loanSchema = new mongoose.Schema({
     },
     loanType : {
         type : String,
+        enum : ['Lent' , "Borrowed"]
     },
     loanAmt : {
         type : String,
         required : true
-    }
+    },
+    dueDate : {
+        type : Date,
+    },
+    
+    
     
 }, {
     timestamps: true

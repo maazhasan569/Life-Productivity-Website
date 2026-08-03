@@ -12,7 +12,7 @@ const goalsSchema = new mongoose.Schema({
 
     },
     achievmentDate : {
-        type : String,
+        type : Date,
         required : true
     },
     status : {
