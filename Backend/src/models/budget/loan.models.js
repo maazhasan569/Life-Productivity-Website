@@ -23,3 +23,5 @@ const loanSchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
+
+export const Loan = mongoose.Schema("Loan" , loanSchema)
