@@ -12,9 +12,9 @@ const verifyDiskFile = asyncHandler(async (req, res, next) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         const detectedType = await fileTypeFromFile(req.file.path)
 
-        if (!(detectedType || allowedTypes.includes(detectedType.mime))) {
+        if (!detectedType || !allowedTypes.includes(detectedType.mime)) {
+            fs.unlinkSync(req.file.path)
             throw new ApiError(400, "Invalid file type")
-            fs.unlink(req.file.path)
         }
         req.file.realMimeType = detectedType.mime;
         req.file.realExtension = detectedType.ext;
