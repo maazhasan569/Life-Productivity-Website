@@ -19,12 +19,14 @@ const fileFilter = (req, file, cb) => {
         } else {
             cb(new ApiError(400, "A pdf or an imag file is required"), false)
         }
-        const allowedFileExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf']
+        const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
 
-        const ext = file.originalname.substring(file.originalname.lastIndexOf('.')).toLowerCase();
-        if (!allowedFileExts.includes(ext)) {
-            cb(new ApiError(400, "File extension not allowed"), false)
+        if (allowedMimeTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new ApiError('Invalid initial file type header. Only images and PDFs allowed.'), false);
         }
+
 
     } catch (err) {
         cb(err.msg, false)
@@ -33,5 +35,9 @@ const fileFilter = (req, file, cb) => {
 
 export const upload = multer({
     storage,
+    fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    }
 
 })
