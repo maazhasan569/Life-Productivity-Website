@@ -10,11 +10,11 @@ const usersSchema = new mongoose.Schema({
     },
     identity : {
         type : String,
+        enum : ["Student" , "Working Adults" , "Retires" ],
         required : true,
     },
     income : {
         type : Number,
-        enum : ["Student" , "Working Adults" , "Retires" ],
         required : true
     },
     currency : {
