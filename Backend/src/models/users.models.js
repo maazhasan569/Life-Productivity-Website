@@ -11,15 +11,12 @@ const usersSchema = new mongoose.Schema({
     identity : {
         type : String,
         enum : ["Student" , "Working Adults" , "Retires" ],
-        required : true,
     },
     income : {
         type : Number,
-        required : true
     },
     currency : {
         type : String,
-        required : true,
     },
     password: {
         type: String,
@@ -35,7 +32,9 @@ const usersSchema = new mongoose.Schema({
     avatar: {
         type: String, // cloudinary url
     },
-
+    publicId:{
+        type : String,
+    },
     refreshToken: {
         type: String,
         default : null,
