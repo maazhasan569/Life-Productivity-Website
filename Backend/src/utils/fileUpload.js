@@ -18,7 +18,7 @@ const fileUpload = async (filePath) => {
         })
 
     
-        return {url : upload.secure_url , publicId : upload.public_id}
+        return {fileUrl : upload.secure_url , publicId : upload.public_id}
     } catch (err) {
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath)

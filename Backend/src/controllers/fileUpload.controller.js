@@ -15,17 +15,19 @@ export const uploadFile = asyncHandler(async (req, res) => {
     //if type doc then save in doc schema
     //then save in user avatar
     //run the fileupload func
-    const fileUrl = await fileUpload(filePath)
+    const { fileUrl, publicId } = await fileUpload(filePath)
     if (!type) {
         throw new ApiError(400, "No file type found (doc/avatar)")
     }
     const response = type.toLowerCase() === "document" ?
         await Document.create({
-            document: fileUrl
+            document: fileUrl,
+            publicId,
         }) : Users.findByIdAndUpdate(
             user._id,
             {
-                avatar: fileUrl
+                avatar: fileUrl,
+                publicId,
             }
         )
 
@@ -39,17 +41,88 @@ export const uploadFile = asyncHandler(async (req, res) => {
         )
 })
 
-const updateFile = asyncHandler(async (req,res) => {
+const updateFile = asyncHandler(async (req, res) => {
     //find the file by id
     //if file run
     //if 
-    const {id} = req.params
+    const { id } = req.params
+    const filePath = req.filePath
     const existingFile = await Document.findById(id)
-    if(!existingFile){
-        throw new ApiError(404 , "File not found")
+    if (!existingFile) {
+        throw new ApiError(404, "File not found")
     }
 
-    await deleteFromCloudinary(existingFile.public_id)
+    await deleteFromCloudinary(existingFile.cloudinaryPublicId)
+    const { fileUrl, publicId } = await fileUpload(filePath)
+    if (!type) {
+        throw new ApiError(400, "No file type found (doc/avatar)")
+    }
+    const response = type.toLowerCase() === "document" ?
+        await Document.findByIdAndUpdate(
+            existingFile._id,
+            {
+                document: fileUrl,
+                publicId,
+            },
+            { new: true }) : Users.findByIdAndUpdate(
+                user._id,
+                {
+                    avatar: fileUrl,
+                    publicId,
+                },
+                { new: true }
+            )
+
+    if (!response) {
+        throw new ApiError(500, "failed to save file to db")
+    }
+    return res.status(200)
+        .json(
+            new ApiResponse(201, ` ${type} updated`, { [type]: fileUrl })
+        )
+
+
+})
+
+const deleteFile = asyncHandler(async (req, res) => {
+    //find the file by id
+    //if file run
+    //if 
+    const { id } = req.params
+    const filePath = req.filePath
+    const existingFile = await Document.findById(id)
+    if (!existingFile) {
+        throw new ApiError(404, "File not found")
+    }
+
+    await deleteFromCloudinary(existingFile.cloudinaryPublicId)
+    const { fileUrl, publicId } = await fileUpload(filePath)
+    if (!type) {
+        throw new ApiError(400, "No file type found (doc/avatar)")
+    }
+    const response = type.toLowerCase() === "document" ?
+        await Document.findByIdAndDelete(
+            existingFile._id,
+            {
+                document: fileUrl,
+                publicId,
+            },
+            { new: true }) : Users.findByIdAndUpdate(
+                user._id,
+                {
+                    avatar: fileUrl,
+                    publicId,
+                },
+                { new: true }
+            )
+
+    if (!response) {
+        throw new ApiError(500, "failed to save file to db")
+    }
+    return res.status(200)
+        .json(
+            new ApiResponse(201, ` ${type} deleted`, { [type]: fileUrl })
+        )
 
 
 })
