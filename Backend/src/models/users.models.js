@@ -48,13 +48,14 @@ const usersSchema = new mongoose.Schema({
     },
     googleId : {
         type : String,
-        default : null,
         unique : true,
         sparse : true
     }
     
 },
-    { timestamps: true })
+{
+    timestamps : true
+})
 
 usersSchema.pre("save", async function () {
     if (!this.isModified("password")) return;

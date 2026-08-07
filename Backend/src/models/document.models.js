@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const documentSchema = new mongoose.model({
+const documentSchema = new mongoose.Schema({
     document : {
         type : String,
         required : true
