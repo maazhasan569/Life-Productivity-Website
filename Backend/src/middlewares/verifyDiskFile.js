@@ -2,7 +2,7 @@ import { fileTypeFromFile } from "file-type";
 import ApiError from "../utils/ApiError";
 import asyncHandler from "../utils/asyncHandler";
 import fs from "fs"
-const verifyDiskFile = asyncHandler(async (req, res, next) => {
+export const verifyDiskFile = asyncHandler(async (req, res, next) => {
 
     if (!req.file) {
         throw new ApiError(404, "No file given")

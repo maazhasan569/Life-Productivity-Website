@@ -5,7 +5,7 @@ import { Users } from "../models/users.models";
 import fileUpload from "../utils/fileUpload";
 import ApiResponse from "../utils/ApiResponse";
 
-const uploadFile = asyncHandler(async (req, res) => {
+export const uploadFile = asyncHandler(async (req, res) => {
     const { type } = req.body
     const filePath = req.filePath
     const user = req.user
