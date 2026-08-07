@@ -19,7 +19,7 @@ app.use(cookieParser())
 import authRouter from "./routes/auth.route.js"
 import user from "./routes/fileupload.route.js"
 app.use("/api/v1/auth" , authRouter)
-app.use("api/v1/user" , user)
+app.use("/api/v1/user" , user)
 app.use((err, req, res, next) => {
     let statusCode = err.statusCode || 500;
     let message = err.message || "Internal Server Error";

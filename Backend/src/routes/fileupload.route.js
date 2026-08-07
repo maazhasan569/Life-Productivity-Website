@@ -6,11 +6,10 @@ import { uploadFile } from "../controllers/fileUpload.controller.js";
 
 const router  = Router()
 
-router.route("upload-file").post(
+router.route("/upload-file").post(
     verfiyJWTAccessToken,
     upload.single("File"),
     verifyDiskFile,
     uploadFile
-
 )
 export default router
