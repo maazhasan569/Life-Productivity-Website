@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware";
-import { upload } from "../middlewares/multer.middleware";
-import { verifyDiskFile } from "../middlewares/verifyDiskFile";
-import { uploadFile } from "../controllers/fileUpload.controller";
+import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
+import { verifyDiskFile } from "../middlewares/verifyDiskFile.js";
+import { uploadFile } from "../controllers/fileUpload.controller.js";
 
 const router  = Router()
 
@@ -13,3 +13,4 @@ router.route("upload-file").post(
     uploadFile
 
 )
+export default router

@@ -1,6 +1,6 @@
 
 import ApiError from "./ApiError.js"
-import { Users } from "../models/users.model.js"
+import { Users } from "../models/users.models.js"
 export const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await Users.findById(userId)

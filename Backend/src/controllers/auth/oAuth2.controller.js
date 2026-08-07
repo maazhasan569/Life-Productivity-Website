@@ -1,6 +1,6 @@
 import { OAuth2Client } from "google-auth-library"
 import asyncHandler from "../../utils/asyncHandler.js"
-import { Users } from "../../models/users.model.js"
+import { Users } from "../../models/users.models.js"
 import ApiError from "../../utils/ApiError.js"
 import ApiResponse from "../../utils/ApiResponse.js"
 import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js"

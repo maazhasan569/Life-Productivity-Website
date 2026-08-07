@@ -1,9 +1,9 @@
-import ApiError from "../utils/ApiError";
-import asyncHandler from "../utils/asyncHandler";
-import { Document } from "../models/document.models";
-import { Users } from "../models/users.models";
-import fileUpload from "../utils/fileUpload";
-import ApiResponse from "../utils/ApiResponse";
+import ApiError from "../utils/ApiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { Document } from "../models/document.models.js";
+import { Users } from "../models/users.models.js";
+import fileUpload from "../utils/fileUpload.js";
+import ApiResponse from "../utils/ApiResponse.js";
 
 export const uploadFile = asyncHandler(async (req, res) => {
     const { type } = req.body

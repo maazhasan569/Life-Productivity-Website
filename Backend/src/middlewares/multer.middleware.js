@@ -1,7 +1,7 @@
 import multer from "multer"
-import ApiError from "./ApiError.js"
+import ApiError from "../utils/ApiError.js";
 import sharp from "sharp"
-import { inspectPdf } from "../utils/inspectPdf.js"
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, "./public/temp")

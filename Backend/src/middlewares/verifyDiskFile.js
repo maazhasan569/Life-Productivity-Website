@@ -1,6 +1,6 @@
 import { fileTypeFromFile } from "file-type";
-import ApiError from "../utils/ApiError";
-import asyncHandler from "../utils/asyncHandler";
+import ApiError from "../utils/ApiError.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import fs from "fs"
 export const verifyDiskFile = asyncHandler(async (req, res, next) => {
 

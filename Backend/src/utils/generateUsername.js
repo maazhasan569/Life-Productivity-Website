@@ -1,4 +1,4 @@
-import { Users } from "../models/users.model.js";
+import { Users } from "../models/users.models.js";
 
 export const generateUsername = async (email) => {
     let baseUsername = email.split('@')[0]
