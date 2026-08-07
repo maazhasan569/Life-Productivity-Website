@@ -4,6 +4,7 @@ import { Document } from "../models/document.models.js";
 import { Users } from "../models/users.models.js";
 import fileUpload from "../utils/fileUpload.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import { v2 as cloudinary } from "cloudinary"
 
 export const uploadFile = asyncHandler(async (req, res) => {
     const { type } = req.body
@@ -36,4 +37,19 @@ export const uploadFile = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(201, `New ${type} file created`, { [type]: fileUrl })
         )
+})
+
+const updateFile = asyncHandler(async (req,res) => {
+    //find the file by id
+    //if file run
+    //if 
+    const {id} = req.params
+    const existingFile = await Document.findById(id)
+    if(!existingFile){
+        throw new ApiError(404 , "File not found")
+    }
+
+    await deleteFromCloudinary(existingFile.public_id)
+
+
 })

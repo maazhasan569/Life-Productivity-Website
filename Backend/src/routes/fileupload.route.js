@@ -12,4 +12,11 @@ router.route("/upload-file").post(
     verifyDiskFile,
     uploadFile
 )
+router.route("/update-file").put(
+    verfiyJWTAccessToken,
+    upload.single("File"),
+    verifyDiskFile,
+    uploadFile
+)
+
 export default router
