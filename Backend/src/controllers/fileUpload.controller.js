@@ -45,10 +45,7 @@ const deleteFromCloudinary = async (publicId) => {
         )
 })
 
-const config = {
-        document: { model: Document, field: "document", id },
-        avatar: { model: Users, field: "avatar", id: req.user._id }
-    }
+
 const updateFile = asyncHandler(async (req, res) => {
 
     const typeKey = req.body.type?.toLowerCase()
@@ -58,7 +55,10 @@ const updateFile = asyncHandler(async (req, res) => {
         throw new ApiError(400, "No file type found (doc/avatar)")
     }
 
-    
+    const config = {
+        document: { model: Document, field: "document", id },
+        avatar: { model: Users, field: "avatar", id: req.user._id }
+    }
     const selectedType = config[typeKey]
     const isExistingFile = await selectedType.model.findById(selectedType.id)
     if (!isExistingFile) {
@@ -92,6 +92,10 @@ const deleteFile = asyncHandler(async (req, res) => {
     if (!typeKey || !["document", "avatar"].includes(typeKey)) {
         throw new ApiError(400, "No file type found (doc/avatar)")
     }
+    const config = {
+        document: { model: Document, field: "document", id },
+        avatar: { model: Users, field: "avatar", id: req.user._id }
+    }
     const selectedType = config[typeKey]
 
     const existingFile = await selectedType.model.findById(selectedType.id)
@@ -116,3 +120,9 @@ const deleteFile = asyncHandler(async (req, res) => {
 
 
 })
+
+export {
+    updateFile,
+    updateFile,
+    deleteFile,
+}
