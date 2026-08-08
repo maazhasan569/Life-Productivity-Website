@@ -16,7 +16,7 @@ router.route("/update-file/:id").put(
     verfiyJWTAccessToken,
     upload.single("File"),
     verifyDiskFile,
-    uploadFile
+    updateFile
 )
 router.route("/delete-file/:id").delete(
     verfiyJWTAccessToken,

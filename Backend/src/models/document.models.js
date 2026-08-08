@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const documentSchema = new mongoose.model({
+const documentSchema = new mongoose.Schema({
     document : {
         type : String,
         required : true
@@ -12,10 +12,10 @@ const documentSchema = new mongoose.model({
     publicId : {
         type : String,
         required : true
-    }
+    },
     
 } ,{
     timestamps : true
 })
 
-export const Document = new mongoose.model("Document", documentSchema)
+export const Document = mongoose.model("Document", documentSchema)

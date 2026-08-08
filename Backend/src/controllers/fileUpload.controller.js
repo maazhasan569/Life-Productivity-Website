@@ -16,7 +16,7 @@ const deleteFromCloudinary = async (publicId) => {
   }
 };
 
- const uploadFile = asyncHandler(async (req, res) => {
+const uploadFile = asyncHandler(async (req, res) => {
     const typeKey = req.body.type?.toLowerCase()
     const filePath = req.filePath
     if (!typeKey || !["document", "avatar"].includes(typeKey)) {
@@ -27,6 +27,7 @@ const deleteFromCloudinary = async (publicId) => {
         await Document.create({
             document: fileUrl,
             publicId,
+            userId : req.user._id
         }) : await Users.findByIdAndUpdate(
             req.user._id,
             {
@@ -41,7 +42,7 @@ const deleteFromCloudinary = async (publicId) => {
 
     return res.status(201)
         .json(
-            new ApiResponse(201, `New ${type} file created`, { [type]: fileUrl })
+            new ApiResponse(201, `New ${typeKey} file created`, { [typeKey]: fileUrl })
         )
 })
 
@@ -64,7 +65,7 @@ const updateFile = asyncHandler(async (req, res) => {
     if (!isExistingFile) {
         throw new ApiError(400, "file not found")
     }
-    await deleteFromCloudinary(isExisitingFile.publicId)
+    await deleteFromCloudinary(isExistingFile.publicId)
     const { fileUrl, publicId } = await fileUpload(filePath)
     const newFile = await selectedType.model.findByIdAndUpdate(
         selectedType.id,
@@ -123,6 +124,6 @@ const deleteFile = asyncHandler(async (req, res) => {
 
 export {
     updateFile,
-    updateFile,
+    uploadFile,
     deleteFile,
 }
