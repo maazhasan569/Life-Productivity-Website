@@ -16,8 +16,8 @@ app.use(express.urlencoded({extended : true , limit : "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-import authRouter from "./routes/auth.route.js"
-import user from "./routes/fileupload.route.js"
+import authRouter from "./routes/user/auth.route.js"
+import user from "./routes/user/user.route.js"
 app.use("/api/v1/auth" , authRouter)
 app.use("/api/v1/user" , user)
 app.use((err, req, res, next) => {

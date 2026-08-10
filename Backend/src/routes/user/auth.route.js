@@ -1,16 +1,17 @@
 import { Router } from "express"
-import {
+import 
+{ 
     createUserAccount,
     logInUser,
-    getNewAccessToken,
-    logOut
-} from "../controllers/auth/auth.controller.js"
+    logOut,
+    getNewAccessToken 
+} from "../../controllers/user/auth/auth.controller.js"
 import {
     loginUrl,
     registorUrl,
     loginOrRegistorGoogleUser
-} from "../controllers/auth/OAuth2.controller.js"
-import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware.js"
+} from "../../controllers/user/auth/oAuth2.controller.js"
+import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware.js"
 const router = Router()
 
 router.route("/create-account").post(createUserAccount)

@@ -1,9 +1,9 @@
-import ApiError from "../utils/ApiError.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import { Document } from "../models/document.models.js";
-import { Users } from "../models/users.models.js";
-import fileUpload from "../utils/fileUpload.js";
-import ApiResponse from "../utils/ApiResponse.js";
+import ApiError from "../../utils/ApiError.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import { Document } from "../../models/document.models.js";
+import { Users } from "../../models/users.models.js";
+import fileUpload from "../../utils/fileUpload.js";
+import ApiResponse from "../../utils/ApiResponse.js";
 import { v2 as cloudinary } from "cloudinary"
 
 

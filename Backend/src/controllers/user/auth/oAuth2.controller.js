@@ -1,10 +1,10 @@
 import { OAuth2Client } from "google-auth-library"
-import asyncHandler from "../../utils/asyncHandler.js"
-import { Users } from "../../models/users.models.js"
-import ApiError from "../../utils/ApiError.js"
-import ApiResponse from "../../utils/ApiResponse.js"
-import { generateAccessAndRefreshToken } from "../../utils/generateJwtToken.js"
-import { generateUsername } from "../../utils/generateUsername.js"
+import asyncHandler from "../../../utils/asyncHandler.js"
+import { Users } from "../../../models/users.models.js"
+import ApiError from "../../../utils/ApiError.js"
+import ApiResponse from "../../../utils/ApiResponse.js"
+import { generateAccessAndRefreshToken } from "../../../utils/generateJwtToken.js"
+import { generateUsername } from "../../../utils/generateUsername.js"
 
 const getGoogleTokenAndPayload = async (code) => {
 
