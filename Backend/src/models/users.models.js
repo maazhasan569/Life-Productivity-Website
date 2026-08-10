@@ -6,55 +6,59 @@ const usersSchema = new mongoose.Schema({
     username: {
         type: String,
         unique: true,
-        lowercase : true
+        lowercase: true
     },
-    identity : {
-        type : String,
-        enum : ["Student" , "Working Adults" , "Retires" ],
+    identity: {
+        type: String,
+        enum: {
+            ["Student", "Working Adults", "Retires"],
+            message: "Please select a valid identity: Student, Working Adults, or Retirees"
+        }
+
     },
-    income : {
-        type : Number,
+    income: {
+        type: Number,
     },
-    currency : {
-        type : String,
+    currency: {
+        type: String,
     },
     password: {
         type: String,
-        default : undefined,
-        sparse : true
-        
+        default: undefined,
+        sparse: true
+
     },
     email: {
         type: String,
         unique: true,
-        lowercase : true
+        lowercase: true
     },
     avatar: {
         type: String, // cloudinary url
     },
-    publicId:{
-        type : String,
+    publicId: {
+        type: String,
     },
     refreshToken: {
         type: String,
-        default : null,
-        sparse : true
+        default: null,
+        sparse: true
     },
     googleRefreshToken: {
         type: String,
-        default : null,
-        sparse : true
+        default: null,
+        sparse: true
     },
-    googleId : {
-        type : String,
-        unique : true,
-        sparse : true
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
     }
-    
+
 },
-{
-    timestamps : true
-})
+    {
+        timestamps: true
+    })
 
 usersSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
@@ -69,7 +73,7 @@ usersSchema.methods.generateAccessToken = function () {
 
     return jwt.sign(
         {
-            userId : this._id,
+            userId: this._id,
             username: this.username,
             password: this.password,
             email: this.email,
@@ -92,4 +96,4 @@ usersSchema.methods.generateRefreshToken = function () {
         }
     )
 }
-export const Users = mongoose.model("User" , usersSchema)
+export const Users = mongoose.model("User", usersSchema)
