@@ -29,6 +29,7 @@ const createExpense = asyncHandler(async (req, res) => {
     if (amount > userBudget) {
         throw new ApiError(400, "Expense amount is to big , greator than budget")
     }
+
     const createExpense = await Expense.create(
         {
             userId: req.user._id,
@@ -40,6 +41,8 @@ const createExpense = asyncHandler(async (req, res) => {
     if (!createExpense) {
         throw new ApiError(400, "failed to save expense in database")
     }
+    user.budget -= amount
+    await user.save({ validiationBeforeSave: false })
 
     return res.status(200)
         .json(
@@ -47,3 +50,42 @@ const createExpense = asyncHandler(async (req, res) => {
         )
 
 })
+
+const editExpense = asyncHandler(async (req, res) => {
+    const { name, amount, category } = req.body
+    const { expenseId } = req.params
+    const check = fieldCheck([name, amount])
+    if (check) {
+        throw new ApiError(400, "All fields are required")
+    }
+    const user = await Users.findById(req.user._id)
+    const userBudget = user.budget
+    if (userBudget === 0) {
+        throw new ApiError(400, "no budget amt left")
+    }
+    if (amount > userBudget) {
+        throw new ApiError(400, "Expense amount is to big , greator than budget")
+    }
+
+    const updateExpense = await Expense.findByIdAndUpdate(
+        expenseId,
+        {
+            amount,
+            category,
+            name,
+        },
+        { new: true }
+    )
+
+
+
+    if (!updateExpense) {
+        throw new ApiError(400, "failed to edit expense ")
+    }
+
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Expense created", updateExpense)
+        )
+})
+//add a class to handle budget logic
