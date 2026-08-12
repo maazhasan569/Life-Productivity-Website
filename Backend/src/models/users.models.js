@@ -35,7 +35,10 @@ const usersSchema = new mongoose.Schema({
     avatar: {
         type: String, // cloudinary url
     },
-
+    budget : {
+        type : Number,
+        
+    }
     refreshToken: {
         type: String,
         default : null,
