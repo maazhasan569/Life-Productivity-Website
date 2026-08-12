@@ -3,9 +3,15 @@ import { Expense } from "../models/budget/expense.models"
 import { Users } from "../models/users.models"
 export class ExpenseTracker {
     constructor(budget, userId) {
+        if (!this.budget || this.budget <= 0) {
+            throw new ApiError(400, "Invalid budget")
+        }
+        if(!userId){
+            throw new ApiError(400 , "No user Id")
+        }
         this.budget = budget,
-            this.expense = expense,
             this.userId = userId
+
     }
     addExpense(name, category = null, amount) {
         if (amount > this.budget || amount <= 0) {
