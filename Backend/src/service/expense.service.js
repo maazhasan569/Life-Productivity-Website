@@ -95,10 +95,5 @@ export class ExpenseTracker {
             throw new ApiError(500 , err.message)
         }
     }
-    // async spendingTrends(){
-    //     try{
-    //         const countExpenses = await Expense.countDocuments()
-    //         if(countExpenses > 0 && )
-    //     }catch
-    // }
+    
 }

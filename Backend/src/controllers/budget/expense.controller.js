@@ -9,7 +9,16 @@ const fieldCheck = (arr) => {
         return fields === "" || fields.trim() === ""
     })
 }
-
+const getBudget = asyncHandler(async (req, res) => {
+    const user = await Users.findById(req.user._id)
+    if(!user && !user.budget){
+        throw new ApiError(400 , "No user budget found")
+    }
+    return res.status(200)
+        .json(
+            new ApiResponse(200 , "fetched user budget" , user.budget)
+        )
+})
 const createExpense = asyncHandler(async (req, res) => {
     //if there is any loan,goal,
     //if there a budget
@@ -25,11 +34,12 @@ const createExpense = asyncHandler(async (req, res) => {
     const user = await Users.findById(req.user._id)
     const userBudget = user.budget
     const manageExpense = new ExpenseTracker(userBudget, req.user._id)
+    const { updatedBudget, totalSpend } = await expense.getAndSaveRemainingBudget()
     const createExpense = await manageExpense.addExpense(name, category, amount)
 
     return res.status(200)
         .json(
-            new ApiResponse(200, "Expense created", createExpense)
+            new ApiResponse(200, "Expense created", { createExpense, updatedBudget, totalSpend })
         )
 
 })
@@ -55,11 +65,11 @@ const editExpense = asyncHandler(async (req, res) => {
 const showAllExpense = asyncHandler(async (req, res) => {
     const user = await Users.findById(req.user._id)
 
-    const expense = new ExpenseTracker(user.budget , user._id)
+    const expense = new ExpenseTracker(user.budget, user._id)
     const allExpenses = await expense.getAllExpense()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "fetched user expenses" ,allExpenses )
-    )
+        .json(
+            new ApiResponse(200, "fetched user expenses", allExpenses)
+        )
 })
