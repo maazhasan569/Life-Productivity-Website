@@ -37,8 +37,8 @@ const usersSchema = new mongoose.Schema({
     },
     budget : {
         type : Number,
-        
-    }
+
+    },
     refreshToken: {
         type: String,
         default : null,
