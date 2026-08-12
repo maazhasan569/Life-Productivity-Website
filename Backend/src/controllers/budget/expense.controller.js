@@ -24,8 +24,8 @@ const createExpense = asyncHandler(async (req, res) => {
     }
     const user = await Users.findById(req.user._id)
     const userBudget = user.budget
-    const manageExpense = new ExpenseTracker(userBudget , req.user._id)
-    const createExpense = await manageExpense.addExpense(name , category , amount)
+    const manageExpense = new ExpenseTracker(userBudget, req.user._id)
+    const createExpense = await manageExpense.addExpense(name, category, amount)
 
     return res.status(200)
         .json(
@@ -43,12 +43,23 @@ const editExpense = asyncHandler(async (req, res) => {
     }
     const user = await Users.findById(req.user._id)
     const userBudget = user.budget
-    const expense = new ExpenseTracker(userBudget , req.user._id)
-    const updateExpense = await expense.editExpense(expenseId, name , category , amount)
-
+    const expense = new ExpenseTracker(userBudget, req.user._id)
+    const updateExpense = await expense.editExpense(expenseId, name, category, amount)
+    const { updatedBudget, totalSpend } = await expense.getAndSaveRemainingBudget()
     return res.status(200)
         .json(
-            new ApiResponse(200, "Expense created", updateExpense)
+            new ApiResponse(200, "Expense created", { updateExpense, updatedBudget, totalSpend })
         )
 })
-//add a class to handle budget logic
+
+const showAllExpense = asyncHandler(async (req, res) => {
+    const user = await Users.findById(req.user._id)
+
+    const expense = new ExpenseTracker(user.budget , user._id)
+    const allExpenses = await expense.getAllExpense()
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "fetched user expenses" ,allExpenses )
+    )
+})

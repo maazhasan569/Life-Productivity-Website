@@ -68,16 +68,37 @@ export class ExpenseTracker {
     }
     async getAndSaveRemainingBudget() {
         try {
+            const totalSpend = this.getTotalSpend()
             const user = await Users.findByIdAndUpdate(
                 this.userId,
                 {
-                    budget: this.budget - this.getTotalSpend
+                    budget: this.budget - totalSpend
                 },
                 { new: true }
             )
+            return {updatedBudget : user.budget , totalSpend}
         } catch (error) {
             throw new ApiError(500, error.message)
         }
-        return user.budget
+        
     }
+    async getAllExpense(){
+        try{
+            const allExpenses = await Expense.aggregate([
+                {
+                    $match : {
+                        userId : new mongoose.Types.ObjectId(this.userId)
+                    }
+                }
+            ])
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
+    }
+    // async spendingTrends(){
+    //     try{
+    //         const countExpenses = await Expense.countDocuments()
+    //         if(countExpenses > 0 && )
+    //     }catch
+    // }
 }
