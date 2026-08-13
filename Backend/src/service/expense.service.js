@@ -76,24 +76,28 @@ export class ExpenseTracker {
                 },
                 { new: true }
             )
-            return {updatedBudget : user.budget , totalSpend}
+            return { updatedBudget: user.budget, totalSpend }
         } catch (error) {
             throw new ApiError(500, error.message)
         }
-        
+
     }
-    async getAllExpense(){
-        try{
+    async getAllExpense() {
+        try {
             const allExpenses = await Expense.aggregate([
                 {
-                    $match : {
-                        userId : new mongoose.Types.ObjectId(this.userId)
+                    $match: {
+                        userId: new mongoose.Types.ObjectId(this.userId)
                     }
                 }
             ])
-        }catch(err){
-            throw new ApiError(500 , err.message)
+            return allExpenses
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
     }
-    
+
+    async deleteExpense(expenseId, ans1, ans2) {
+    }
+
 }
