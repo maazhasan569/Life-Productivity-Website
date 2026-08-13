@@ -1,4 +1,4 @@
-async function paginate(Model, page = 1, limit = 10, sortBy, sortType, userId) {
+export async function paginate(Model, page = 1, limit = 10, sortBy, sortType, userId) {
 
     const page = Math.max(1, parseInt(page, 10) || 1);
     const limit = Math.max(1, parseInt(limit, 10) || 10);
