@@ -76,36 +76,42 @@ const showAllExpense = asyncHandler(async (req, res) => {
 
 const deleteExpense = asyncHandler(async (req, res) => {
     //delete accidently or refund
-    const expenseId = req.params
+    //Q1 : Did money actually leave your account for this?
+    //Q2 : Did you receive money back (a refund)
+    const { expenseId } = req.params
     const { ans1, ans2 } = req.body
-    if (!ans1 || !ans2) {
-        throw new ApiError(400, "Ans all the given question")
+    if (ans1 && ans1 === "No" && !ans2) {
+        ans2 = "No"
     }
-    const ansCheck = [ans1, ans2].includes("Yes" || "No")
-    if (!ansCheck) {
-        throw new ApiError(400, "Ans not valid")
+    const validAns = ["Yes", "No"]
+    if (!validAns.includes(ans1) && !validAns.includes(ans2)) {
+        throw new ApiError(400, "Ans must be Yes/No")
     }
     const DELETION_RULES = {
-        "NO_NO": { action: "HARD_DELETE", restoreBudget: true,  },
-        "NO_YES": { action: "HARD_DELETE", restoreBudget: true,  }, // Invalid combo defaults to safe delete
-        "YES_YES": { action: "STORE_HISTORY", restoreBudget: true, },
-        "YES_NO": { action: "STORE_HISTORY", restoreBudget: false,  }
+        "No_No": { action: "HARD_DELETE", restoreBudget: true, },
+        "No_Yes": { action: "HARD_DELETE", restoreBudget: true, }, // Invalid combo defaults to safe delete
+        "Yes_Yes": { action: "STORE_HISTORY", restoreBudget: true, },
+        "Yes_No": { action: "STORE_HISTORY", restoreBudget: false, }
     };
-    
+
     const key = DELETION_RULES[`${ans1}_${ans2}`]
 
-    if(key.restoreBudget) {
-        const expense = await Expense.findById(expenseId)
-        const user = await Users.findById(req.user._id)
-        user.budget = user.budget - expense.amount
-        await user.save({validiationBeforeSave : true})
+    const expense = await Expense.findById(expenseId)
+    if (!expense) {
+        throw new ApiError(400, "Expense not found through Id")
     }
-    if(key.action === "HARD_DELETE"){
+    if (key.restoreBudget) {
+        const incsBudget = await Users.findByIdAndUpdate(req.user._id, {
+            $inc: { budget: expense.amount }
+        });
+    }
+
+    if (key.action === "HARD_DELETE") {
         const delExpense = await Expense.findByIdAndDelete(expenseId)
-    }else{
+    } else {
         //expenseId
         const History = await History.create({
-            expenses : expenseId
+            expenses: expenseId
         })
     }
 
