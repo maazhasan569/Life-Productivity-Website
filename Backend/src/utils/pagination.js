@@ -1,5 +1,7 @@
-async function paginate(page, limit, sortBy, sortType, userId) {
+async function paginate(Model, page = 1, limit = 10, sortBy, sortType, userId) {
 
+    const page = Math.max(1, parseInt(page, 10) || 1);
+    const limit = Math.max(1, parseInt(limit, 10) || 10);
     let sortObj = {}
     if (sortBy) {
         const sortDirection = sortType === "desc" ? -1 : 1;
@@ -8,15 +10,21 @@ async function paginate(page, limit, sortBy, sortType, userId) {
         sortObj.createdAt = -1
     }
     const skip = (page - 1) * limit
-    const totalDoc = await Video.countDocuments(filter)
+    const totalDoc = await Model.countDocuments({})
     const totalPages = Math.ceil(totalDoc / limit)
-    if (!totalDoc) return {}
-    const fetchedVideos = await Video
+    if (totalDoc === 0) return {
+        totalDoc: 0,
+        totalPages: 0,
+        fetchedDoc: [],
+        page,
+        limit,
+    }
+    const fetchedDoc = await Model
         .sort(sortObj)
         .skip(skip)
         .limit(limit)
         .exec()
 
-    return { totalDoc, totalPages, fetchedVideos, page, limit }
+    return { totalDoc, totalPages, fetchedDoc, page, limit }
 
 }
