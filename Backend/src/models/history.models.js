@@ -24,3 +24,4 @@ const historySchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
+export const History = mongoose.model("History",historySchema)
