@@ -96,11 +96,11 @@ export class ExpenseTracker {
             throw new ApiError(500, err.message)
         }
     }
-    async getExpenseById (expenseId){
-        try{
+    async getExpenseById(expenseId) {
+        try {
             const getById = await Expense.findById(expenseId)
-        }catch(err){
-            throw new ApiError(500 , err.message)
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
     }
     async getExpenseByCategory(category) {
@@ -117,7 +117,7 @@ export class ExpenseTracker {
             throw new ApiError(500, err.message)
         }
     }
-    async delExpense(expenseId ,ans1 , ans2) {
+    async delExpense(expenseId, ans1, ans2) {
         if (ans1 === "No" && !ans2) {
             ans2 = "No";
         }
