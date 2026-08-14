@@ -119,4 +119,16 @@ const deleteExpense = asyncHandler(async (req, res) => {
         return { message: "Expense archived to history", restoredBudget: rule.restoreBudget };
     }
 })
-
+const getExpenseCategory = asyncHandler(async(req,res) => {
+    const {expenseCategory} = req.params
+    const user = await Users.findById(req.user._id)
+    const expense = new ExpenseTracker(user.budget , user._id)
+    const getExpenses = await expense.getExpenseByCategory(expenseCategory)
+    if(!getExpenses){
+        throw new ApiError(400 , "No expenses found by category")
+    }
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "Expense fetched by category" , getExpenses)
+    )
+})
