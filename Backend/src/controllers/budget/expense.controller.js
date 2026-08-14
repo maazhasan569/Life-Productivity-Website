@@ -4,6 +4,7 @@ import { Users } from "../../models/users.models"
 import { Expense } from "../../models/budget/expense.models"
 import ApiResponse from "../../utils/ApiResponse"
 import { ExpenseTracker } from "../../service/expense.service"
+import { use } from "react"
 const fieldCheck = (arr) => {
     arr.some((fields) => {
         return fields === "" || fields.trim() === ""
@@ -80,55 +81,21 @@ const deleteExpense = asyncHandler(async (req, res) => {
     //Q2 : Did you receive money back (a refund)
     const { expenseId } = req.params
     const { ans1, ans2 } = req.body
-    if (ans1 === "No" && !ans2) {
-        ans2 = "No";
-    }
-
-    const validAnswers = ["Yes", "No"];
-    if (!validAnswers.includes(ans1) || !validAnswers.includes(ans2)) {
-        throw new ApiError(400, "Answers must be 'Yes' or 'No'");
-    }
-
-    const expense = await Expense.findById(expenseId);
-    if (!expense) {
-        throw new ApiError(404, "Expense not found");
-    }
-    const DELETION_RULES = {
-        "No_No": { action: "HARD_DELETE", restoreBudget: true },
-        "No_Yes": { action: "HARD_DELETE", restoreBudget: true },
-        "Yes_Yes": { action: "STORE_HISTORY", restoreBudget: true },
-        "Yes_No": { action: "STORE_HISTORY", restoreBudget: false }
-    };
-
-    const rule = DELETION_RULES[`${ans1}_${ans2}`];
-
-    if (rule.restoreBudget) {
-        await Users.findByIdAndUpdate(this.userId, {
-            $inc: { budget: expense.amount } // Safely restores budget
-        });
-    }
-
-
-    if (rule.action === "HARD_DELETE") {
-        await Expense.findByIdAndDelete(expenseId);
-        return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget };
-    } else {
-
-        await History.create({ expenseId: expense._id, userId: this.userId });
-        await Expense.findByIdAndDelete(expenseId);
-        return { message: "Expense archived to history", restoredBudget: rule.restoreBudget };
-    }
-})
-const getExpenseCategory = asyncHandler(async(req,res) => {
-    const {expenseCategory} = req.params
     const user = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(user.budget , user._id)
+    const delExpense = expense.delExpense(expenseId , ans1 , ans2)
+    
+})
+const getExpenseCategory = asyncHandler(async (req, res) => {
+    const { expenseCategory } = req.params
+    const user = await Users.findById(req.user._id)
+    const expense = new ExpenseTracker(user.budget, user._id)
     const getExpenses = await expense.getExpenseByCategory(expenseCategory)
-    if(!getExpenses){
-        throw new ApiError(400 , "No expenses found by category")
+    if (!getExpenses) {
+        throw new ApiError(400, "No expenses found by category")
     }
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "Expense fetched by category" , getExpenses)
-    )
+        .json(
+            new ApiResponse(200, "Expense fetched by category", getExpenses)
+        )
 })
