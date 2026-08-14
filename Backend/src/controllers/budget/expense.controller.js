@@ -4,7 +4,7 @@ import { Users } from "../../models/users.models"
 import { Expense } from "../../models/budget/expense.models"
 import ApiResponse from "../../utils/ApiResponse"
 import { ExpenseTracker } from "../../service/expense.service"
-import { use } from "react"
+
 const fieldCheck = (arr) => {
     arr.some((fields) => {
         return fields === "" || fields.trim() === ""
@@ -98,4 +98,17 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, "Expense fetched by category", getExpenses)
         )
+})
+const getExpenseById = asyncHandler(async(req,res) => {
+    const {expenseId} = req.params
+    const user = await Users.findById(req.user._id)
+    const expense = new ExpenseTracker(user.budget , req.user._id)
+    const getExpense = await expense.getExpenseById(expenseId)
+    if(!getExpense){
+        throw new ApiError(400 , "No Expense Found by id.")
+    }
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "Expense fetched by id" , getExpense)
+    )
 })

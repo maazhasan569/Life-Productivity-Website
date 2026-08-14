@@ -96,6 +96,13 @@ export class ExpenseTracker {
             throw new ApiError(500, err.message)
         }
     }
+    async getExpenseById (expenseId){
+        try{
+            const getById = await Expense.findById(expenseId)
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
+    }
     async getExpenseByCategory(category) {
         try {
             const expenseCategory = await Expense.aggregate([
