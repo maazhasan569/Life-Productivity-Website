@@ -96,8 +96,21 @@ export class ExpenseTracker {
             throw new ApiError(500, err.message)
         }
     }
-
-    async deleteExpense(expenseId, ans1, ans2) {
+    async getAllExpenseByCategory(category){
+        try{
+            const expenseCategory = await Expense.aggregate([
+                {
+                    $match : {
+                        category
+                    }
+                }
+            ])
+            return expenseCategory
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
     }
+
+    
 
 }

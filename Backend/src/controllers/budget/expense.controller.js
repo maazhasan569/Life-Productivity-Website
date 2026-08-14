@@ -119,3 +119,4 @@ const deleteExpense = asyncHandler(async (req, res) => {
         return { message: "Expense archived to history", restoredBudget: rule.restoreBudget };
     }
 })
+
