@@ -63,14 +63,16 @@ const editExpense = asyncHandler(async (req, res) => {
             new ApiResponse(200, "Expense created", { updateExpense, updatedBudget, totalSpend })
         )
 })
-const options = {
-    page = 1,
-    limit = 10,
-    sortBy = "createdAt",
-    sortType = -1,
-}
-const showAllExpense = asyncHandler(async (req, res) => {
 
+const showAllExpense = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, sortBy, sortType, userId } = req.query
+    const options = {
+        page,
+        limit,
+        sortBy,
+        sortType,
+        userId
+    }
     const getAllExpenses = await paginate(Expense, options)
     if (!getAllExpenses) {
         throw new ApiError(400, "No Expense found")
@@ -98,8 +100,14 @@ const deleteExpense = asyncHandler(async (req, res) => {
 
 })
 const getExpenseCategory = asyncHandler(async (req, res) => {
-    const { expenseCategory } = req.params
-    options.category = expenseCategory
+    const { page = 1, limit = 10, sortBy, sortType, category } = req.query
+    const options = {
+        page,
+        limit,
+        sortBy,
+        sortType,
+        category
+    }
     const getExpense = await paginate(Expense, options)
     if (!getExpense) {
         throw new ApiError(400, "No expenses found by category")
@@ -110,8 +118,14 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
         )
 })
 const getExpenseById = asyncHandler(async (req, res) => {
-    const { expenseId } = req.params
-    options.id = expenseId
+    const { page = 1, limit = 10, sortBy, sortType, id } = req.query
+    const options = {
+        page,
+        limit,
+        sortBy,
+        sortType,
+        id
+    }
     const getExpense = await paginate(Expense, options)
     if (!getExpense) {
         throw new ApiError(400, "No Expense Found by id.")

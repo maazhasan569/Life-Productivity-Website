@@ -8,8 +8,8 @@ import {
      getExpenseById,
      deleteExpense
 
-} from "../../controllers/budget/expense.controller";
-import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware";
+} from "../../controllers/budget/expense.controller.js";
+import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware.js";
 const router = Router()
 router.route("/").get(verfiyJWTAccessToken,showAllExpense)
 router.route("/:expenseCategory").get(verfiyJWTAccessToken,getExpenseCategory)
