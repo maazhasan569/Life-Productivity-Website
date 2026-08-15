@@ -75,17 +75,18 @@ const editExpense = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
     
-    const expenseDosc = await Expense.findById(expenseId)
+    const expenseDoc = await Expense.findById(expenseId)
     const userDoc = await Users.findById(req.user._id)
     userDoc.budget += expenseDoc.amount
-    await user.save({validateBeforeSave : false})
+
+    await userDoc.save({validateBeforeSave : false})
     const updatedUser = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(updatedUser.budget, req.user._id)
     const updateExpense = await expense.editExpense( expenseId, name, category, amount)
     const { updatedBudget} = await expense.getAndSaveRemainingBudget(updateExpense._id)
     return res.status(200)
         .json(
-            new ApiResponse(200, "Expense created", { updateExpense, updatedBudget, totalSpend })
+            new ApiResponse(200, "Expense created", { updateExpense, updatedBudget})
         )
 })
 
