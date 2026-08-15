@@ -16,7 +16,7 @@ export class ExpenseTracker {
 
     }
     async addExpense(name, amount, category = "General") {
-        
+
         if (!amount || amount <= 0) {
             throw new ApiError(400, "Invalid expense amount")
         }
@@ -57,6 +57,7 @@ export class ExpenseTracker {
                 },
                 { new: true }
             )
+            
             return updateUserExpense;
 
         } catch (error) {
