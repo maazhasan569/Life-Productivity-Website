@@ -21,7 +21,7 @@ export async function paginate(Model, options = {}) {
         sortObj.createdAt = -1
     }
     let filerObj = {}
-    id && (filterObj._id = id);
+    id && (filterObj.id = id)
     userId && (filterObj.userId = userId);
     category && (filterObj.category = category);
 

@@ -4,6 +4,7 @@ import { Users } from "../../models/users.models"
 import { Expense } from "../../models/budget/expense.models"
 import ApiResponse from "../../utils/ApiResponse"
 import { ExpenseTracker } from "../../service/expense.service"
+import { paginate } from "../../utils/pagination"
 
 const fieldCheck = (arr) => {
     arr.some((fields) => {
@@ -62,13 +63,18 @@ const editExpense = asyncHandler(async (req, res) => {
             new ApiResponse(200, "Expense created", { updateExpense, updatedBudget, totalSpend })
         )
 })
-
+const options = {
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortType = -1,
+    }
 const showAllExpense = asyncHandler(async (req, res) => {
-    const user = await Users.findById(req.user._id)
-
-    const expense = new ExpenseTracker(user.budget, user._id)
-    const allExpenses = await expense.getAllExpense()
-
+    
+    const getAllExpenses = await paginate(Expense , options)
+    if(!getAllExpenses){
+        throw new ApiError(400 , "No Expense found")
+    }
     return res.status(200)
         .json(
             new ApiResponse(200, "fetched user expenses", allExpenses)
@@ -82,16 +88,15 @@ const deleteExpense = asyncHandler(async (req, res) => {
     const { expenseId } = req.params
     const { ans1, ans2 } = req.body
     const user = await Users.findById(req.user._id)
-    const expense = new ExpenseTracker(user.budget , user._id)
-    const delExpense = expense.delExpense(expenseId , ans1 , ans2)
-    
+    const expense = new ExpenseTracker(user.budget, user._id)
+    const delExpense = expense.delExpense(expenseId, ans1, ans2)
+
 })
 const getExpenseCategory = asyncHandler(async (req, res) => {
     const { expenseCategory } = req.params
-    const user = await Users.findById(req.user._id)
-    const expense = new ExpenseTracker(user.budget, user._id)
-    const getExpenses = await expense.getExpenseByCategory(expenseCategory)
-    if (!getExpenses) {
+    options.category = expenseCategory
+    const getExpense = await paginate(Expense , options)
+    if (!getExpense) {
         throw new ApiError(400, "No expenses found by category")
     }
     return res.status(200)
@@ -99,18 +104,17 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
             new ApiResponse(200, "Expense fetched by category", getExpenses)
         )
 })
-const getExpenseById = asyncHandler(async(req,res) => {
-    const {expenseId} = req.params
-    const user = await Users.findById(req.user._id)
-    const expense = new ExpenseTracker(user.budget , req.user._id)
-    const getExpense = await expense.getExpenseById(expenseId)
-    if(!getExpense){
-        throw new ApiError(400 , "No Expense Found by id.")
+const getExpenseById = asyncHandler(async (req, res) => {
+    const { expenseId } = req.params
+    options.id = expenseId
+    const getExpense = await paginate(Expense , options)
+    if (!getExpense) {
+        throw new ApiError(400, "No Expense Found by id.")
     }
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "Expense fetched by id" , getExpense)
-    )
+        .json(
+            new ApiResponse(200, "Expense fetched by id", getExpense)
+        )
 })
 
 export {

@@ -1,6 +1,7 @@
 import ApiError from "../utils/ApiError"
 import { Expense } from "../models/budget/expense.models"
 import { Users } from "../models/users.models"
+import { paginate } from "../utils/pagination"
 export class ExpenseTracker {
     constructor(budget, userId) {
         if (budget || budget <= 0) {
@@ -82,41 +83,7 @@ export class ExpenseTracker {
         }
 
     }
-    async getAllExpense() {
-        try {
-            const allExpenses = await Expense.aggregate([
-                {
-                    $match: {
-                        userId: new mongoose.Types.ObjectId(this.userId)
-                    }
-                }
-            ])
-            return allExpenses
-        } catch (err) {
-            throw new ApiError(500, err.message)
-        }
-    }
-    async getExpenseById(expenseId) {
-        try {
-            const getById = await Expense.findById(expenseId)
-        } catch (err) {
-            throw new ApiError(500, err.message)
-        }
-    }
-    async getExpenseByCategory(category) {
-        try {
-            const expenseCategory = await Expense.aggregate([
-                {
-                    $match: {
-                        category
-                    }
-                }
-            ])
-            return expenseCategory
-        } catch (err) {
-            throw new ApiError(500, err.message)
-        }
-    }
+    
     async delExpense(expenseId, ans1, ans2) {
         if (ans1 === "No" && !ans2) {
             ans2 = "No";
