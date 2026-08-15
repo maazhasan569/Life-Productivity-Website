@@ -116,7 +116,7 @@ export class ExpenseTracker {
 
         if (rule.action === "HARD_DELETE") {
             await Expense.findByIdAndDelete(expenseId);
-            return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget };
+            return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget , newBudget : null};
         } else {
 
             await History.create({ expenseId: expense._id, userId: this.userId });

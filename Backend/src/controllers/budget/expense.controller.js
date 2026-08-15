@@ -64,16 +64,16 @@ const editExpense = asyncHandler(async (req, res) => {
         )
 })
 const options = {
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        sortType = -1,
-    }
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortType = -1,
+}
 const showAllExpense = asyncHandler(async (req, res) => {
-    
-    const getAllExpenses = await paginate(Expense , options)
-    if(!getAllExpenses){
-        throw new ApiError(400 , "No Expense found")
+
+    const getAllExpenses = await paginate(Expense, options)
+    if (!getAllExpenses) {
+        throw new ApiError(400, "No Expense found")
     }
     return res.status(200)
         .json(
@@ -89,13 +89,18 @@ const deleteExpense = asyncHandler(async (req, res) => {
     const { ans1, ans2 } = req.body
     const user = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(user.budget, user._id)
-    const delExpense = expense.delExpense(expenseId, ans1, ans2)
+    const { message, restoreBudget, newBudget } = await expense.delExpense(expenseId, ans1, ans2)
+    return res.status(200)
+        .json(
+            new ApiResponse(200, message, { restoreBudget, newBudget })
+        )
+
 
 })
 const getExpenseCategory = asyncHandler(async (req, res) => {
     const { expenseCategory } = req.params
     options.category = expenseCategory
-    const getExpense = await paginate(Expense , options)
+    const getExpense = await paginate(Expense, options)
     if (!getExpense) {
         throw new ApiError(400, "No expenses found by category")
     }
@@ -107,7 +112,7 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
 const getExpenseById = asyncHandler(async (req, res) => {
     const { expenseId } = req.params
     options.id = expenseId
-    const getExpense = await paginate(Expense , options)
+    const getExpense = await paginate(Expense, options)
     if (!getExpense) {
         throw new ApiError(400, "No Expense Found by id.")
     }
