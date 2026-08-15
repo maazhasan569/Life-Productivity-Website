@@ -1,10 +1,10 @@
-import ApiError from "../../utils/ApiError"
-import asyncHandler from "../../utils/asyncHandler"
-import { Users } from "../../models/users.models"
-import { Expense } from "../../models/budget/expense.models"
-import ApiResponse from "../../utils/ApiResponse"
-import { ExpenseTracker } from "../../service/expense.service"
-import { paginate } from "../../utils/pagination"
+import ApiError from "../../utils/ApiError.js"
+import asyncHandler from "../../utils/asyncHandler.js"
+import { Users } from "../../models/users.models.js"
+import { Expense } from "../../models/budget/expense.models.js"
+import ApiResponse from "../../utils/ApiResponse.js"
+import { ExpenseTracker } from "../../service/expense.service.js"
+import { paginate } from "../../utils/pagination.js"
 
 const fieldCheck = (arr) => {
     arr.some((fields) => {

@@ -1,10 +1,11 @@
-import ApiError from "../utils/ApiError"
-import { Expense } from "../models/budget/expense.models"
-import { Users } from "../models/users.models"
-import { paginate } from "../utils/pagination"
+import ApiError from "../utils/ApiError.js"
+import { Expense } from "../models/budget/expense.models.js"
+import { Users } from "../models/users.models.js"
+import { paginate } from "../utils/pagination.js"
+import { History } from "../models/history.models.js"
 export class ExpenseTracker {
     constructor(budget, userId) {
-        if (budget || budget <= 0) {
+        if (!budget || budget <= 0) {
             throw new ApiError(400, "Invalid budget")
         }
         if (!userId) {
@@ -23,7 +24,7 @@ export class ExpenseTracker {
             throw new ApiError(400, "Expense amount exceeds budget")
         }
         try {
-            const createExpense = await Expense({
+            const createExpense = await Expense.creates({
                 userId: this.userId,
                 amount,
                 category,
@@ -50,7 +51,8 @@ export class ExpenseTracker {
                     amount,
                     category,
                     name
-                }
+                },
+                { new: true }
             )
             return updateUserExpense;
 
@@ -69,7 +71,7 @@ export class ExpenseTracker {
     }
     async getAndSaveRemainingBudget() {
         try {
-            const totalSpend = this.getTotalSpend()
+            const totalSpend = await this.getTotalSpend()
             const user = await Users.findByIdAndUpdate(
                 this.userId,
                 {
@@ -83,7 +85,7 @@ export class ExpenseTracker {
         }
 
     }
-    
+
     async delExpense(expenseId, ans1, ans2) {
         if (ans1 === "No" && !ans2) {
             ans2 = "No";
@@ -106,17 +108,18 @@ export class ExpenseTracker {
         };
 
         const rule = DELETION_RULES[`${ans1}_${ans2}`];
-        let newBudget;
+        let newBudget = null
         if (rule.restoreBudget) {
             newBudget = await Users.findByIdAndUpdate(this.userId, {
-                $inc: { budget: expense.amount } // Safely restores budget
-            });
+                $inc: { budget: expense.amount }
+            },
+                { new: true });
         }
 
 
         if (rule.action === "HARD_DELETE") {
             await Expense.findByIdAndDelete(expenseId);
-            return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget , newBudget : null};
+            return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget, newBudget };
         } else {
 
             await History.create({ expenseId: expense._id, userId: this.userId });
