@@ -5,7 +5,6 @@ import asyncHandler from "../../utils/asyncHandler.js";
 
 export const questions = asyncHandler(async (req, res) => {
     const { identity, currency, income, budget } = req.body
-
     const fieldCheck = [identity, currency, income, budget].some((fields) => {
         if (fields == null || fields === "") return true;
     

@@ -6,9 +6,12 @@ import ApiResponse from "../../utils/ApiResponse.js"
 import { ExpenseTracker } from "../../service/expense.service.js"
 import { paginate } from "../../utils/pagination.js"
 
-const fieldCheck = (arr) => {
-    arr.some((fields) => {
-        return fields === "" || fields.trim() === ""
+const fieldCheck = (fields) => {
+    return fields.some(field => {
+        if (typeof field === 'string') {
+            return !field || field.trim() === ""
+        }
+        return !field  // For numbers, null, undefined, etc.
     })
 }
 const getBudget = asyncHandler(async (req, res) => {
@@ -21,6 +24,21 @@ const getBudget = asyncHandler(async (req, res) => {
             new ApiResponse(200, "fetched user budget", user.budget)
         )
 })
+const updatedBudget = asyncHandler(async(req,res)=> {
+    const {budget} = req.body
+
+    const user = await Users.findById(req.user._id)
+    const isPrevBudget = user.budget > 0? true : false
+    user.budget = user.budget + budget
+    const updatedBudget = await user.save({validateBeforeSave : false})
+    if(!updatedBudget){
+        throw new ApiError(500 , "Failed to save user budget")
+    }
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , isPrevBudget? "budget update,previous budget added" : "budget updated" , updatedBudget)
+    )
+})
 const createExpense = asyncHandler(async (req, res) => {
     //if there is any loan,goal,
     //if there a budget
@@ -29,16 +47,20 @@ const createExpense = asyncHandler(async (req, res) => {
     //check the spending trends of user->(frontend)
 
     const { name, amount, category } = req.body
-    const check = fieldCheck([name, amount])
+    const check = fieldCheck([name, category])
+
     if (check) {
         throw new ApiError(400, "All fields are required")
     }
     const user = await Users.findById(req.user._id)
     const userBudget = user.budget
+    if (!userBudget) {
+        throw new ApiError(404, "No budget found")
+    }
     const manageExpense = new ExpenseTracker(userBudget, req.user._id)
-    const { updatedBudget, totalSpend } = await expense.getAndSaveRemainingBudget()
-    const createExpense = await manageExpense.addExpense(name, category, amount)
-
+    const createExpense = await manageExpense.addExpense(name, amount, category)
+    const { updatedBudget, totalSpend } = await manageExpense.getAndSaveRemainingBudget()
+    console.log("create expense :", createExpense)
     return res.status(200)
         .json(
             new ApiResponse(200, "Expense created", { createExpense, updatedBudget, totalSpend })

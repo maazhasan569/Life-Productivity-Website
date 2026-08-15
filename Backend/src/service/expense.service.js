@@ -6,7 +6,7 @@ import { History } from "../models/history.models.js"
 export class ExpenseTracker {
     constructor(budget, userId) {
         if (!budget || budget <= 0) {
-            throw new ApiError(400, "Invalid budget")
+            throw new ApiError(400, `Invalid budget :${budget}`)
         }
         if (!userId) {
             throw new ApiError(400, "No user Id")
@@ -15,24 +15,27 @@ export class ExpenseTracker {
             this.userId = userId
 
     }
-    async addExpense(name, category = "General", amount) {
+    async addExpense(name, amount, category = "General") {
+
         if (!amount || amount <= 0) {
             throw new ApiError(400, "Invalid expense amount")
         }
-
-        if (amount > this.budget) {
+        const totalSpend = await this.getTotalSpend()
+        const remainingBudget = this.budget - totalSpend
+        if (amount > remainingBudget) {
             throw new ApiError(400, "Expense amount exceeds budget")
         }
         try {
-            const createExpense = await Expense.creates({
+            const createExpense = await Expense.create({
                 userId: this.userId,
                 amount,
                 category,
                 name,
             })
+        
             return createExpense;
         } catch (error) {
-            throw new ApiError(500, error.msg)
+            throw new ApiError(500, error.message)
         }
 
     }
