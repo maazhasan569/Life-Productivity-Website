@@ -26,7 +26,6 @@ const getBudget = asyncHandler(async (req, res) => {
 })
 const updatedBudget = asyncHandler(async(req,res)=> {
     const {budget} = req.body
-
     const user = await Users.findById(req.user._id)
     const isPrevBudget = user.budget > 0? true : false
     user.budget = user.budget + budget
@@ -59,8 +58,8 @@ const createExpense = asyncHandler(async (req, res) => {
     }
     const manageExpense = new ExpenseTracker(userBudget, req.user._id)
     const createExpense = await manageExpense.addExpense(name, amount, category)
-    const { updatedBudget, totalSpend } = await manageExpense.getAndSaveRemainingBudget()
-    console.log("create expense :", createExpense)
+    const { updatedBudget, totalSpend } = await manageExpense.getAndSaveRemainingBudget(createExpense._id)
+    
     return res.status(200)
         .json(
             new ApiResponse(200, "Expense created", { createExpense, updatedBudget, totalSpend })
@@ -166,4 +165,5 @@ export {
     showAllExpense,
     getExpenseById,
     getExpenseCategory,
+    updatedBudget
 }

@@ -16,15 +16,15 @@ export class ExpenseTracker {
 
     }
     async addExpense(name, amount, category = "General") {
-
+        
         if (!amount || amount <= 0) {
             throw new ApiError(400, "Invalid expense amount")
         }
-        const totalSpend = await this.getTotalSpend()
-        const remainingBudget = this.budget - totalSpend
-        if (amount > remainingBudget) {
+        if (amount > this.budget) {
             throw new ApiError(400, "Expense amount exceeds budget")
         }
+        
+        
         try {
             const createExpense = await Expense.create({
                 userId: this.userId,
@@ -32,7 +32,7 @@ export class ExpenseTracker {
                 category,
                 name,
             })
-        
+            console.log("expesne created" , createExpense)
             return createExpense;
         } catch (error) {
             throw new ApiError(500, error.message)
@@ -64,25 +64,19 @@ export class ExpenseTracker {
         }
 
     }
-    async getTotalSpend() {
+    
+    async getAndSaveRemainingBudget(id) {
         try {
-            const expenses = await Expense.find({ userId: this.userId })
-            return expenses.reduce((total, exp) => total + exp.amount, 0)
-        } catch (error) {
-            throw new ApiError(500, error.message || "Failed to calculate total spend")
-        }
-    }
-    async getAndSaveRemainingBudget() {
-        try {
-            const totalSpend = await this.getTotalSpend()
+            const expense = await Expense.findById(id)
+            console.log('expense found' , expense)
             const user = await Users.findByIdAndUpdate(
                 this.userId,
                 {
-                    budget: this.budget - totalSpend
+                    budget: this.budget - expense.amount
                 },
                 { new: true }
             )
-            return { updatedBudget: user.budget, totalSpend }
+            return { updatedBudget: user.budget}
         } catch (error) {
             throw new ApiError(500, error.message)
         }
