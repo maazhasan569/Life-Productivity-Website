@@ -91,13 +91,14 @@ const editExpense = asyncHandler(async (req, res) => {
 })
 
 const showAllExpense = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, sortBy, sortType, userId } = req.query
+    const { page = 1, limit = 10, sortBy, sortType,  } = req.query
+    const userId = req.user._id
     const options = {
         page,
         limit,
         sortBy,
         sortType,
-        userId
+        userId 
     }
     const getAllExpenses = await paginate(Expense, options)
     if (!getAllExpenses) {
@@ -105,7 +106,7 @@ const showAllExpense = asyncHandler(async (req, res) => {
     }
     return res.status(200)
         .json(
-            new ApiResponse(200, "fetched user expenses", allExpenses)
+            new ApiResponse(200, "fetched user expenses", getAllExpenses)
         )
 })
 
@@ -127,32 +128,31 @@ const deleteExpense = asyncHandler(async (req, res) => {
 })
 const getExpenseCategory = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, sortBy, sortType, category } = req.query
+    const userId = req.user._id
     const options = {
         page,
         limit,
-        sortBy,
-        sortType,
-        category
+        sortBy : sortBy || "createdAt",
+        sortType : sortType || "asc",
+        category,
+        userId
     }
-    const getExpense = await paginate(Expense, options)
-    if (!getExpense) {
-        throw new ApiError(400, "No expenses found by category")
+    const expensesData = await paginate(Expense, options)
+
+    if (expensesData.fetchedDoc.length === 0) {
+        return res.status(200)
+        .json(
+            new ApiResponse(200 , "No expense found by category" , expensesData)
+        )
     }
     return res.status(200)
         .json(
-            new ApiResponse(200, "Expense fetched by category", getExpenses)
+            new ApiResponse(200, "Expense fetched by category", expensesData)
         )
 })
 const getExpenseById = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, sortBy, sortType, id } = req.query
-    const options = {
-        page,
-        limit,
-        sortBy,
-        sortType,
-        id
-    }
-    const getExpense = await paginate(Expense, options)
+    const {expenseId} = req.params
+    const getExpense = await Expense.findById(expenseId)
     if (!getExpense) {
         throw new ApiError(400, "No Expense Found by id.")
     }

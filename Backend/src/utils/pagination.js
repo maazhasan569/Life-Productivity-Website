@@ -2,7 +2,7 @@ import ApiError from "./ApiError.js";
 
 export async function paginate(Model, options = {}) {
 
-    const {
+    let {
         page = 1,
         limit = 10,
         sortBy = "createdAt",
@@ -20,14 +20,14 @@ export async function paginate(Model, options = {}) {
     } else {
         sortObj.createdAt = -1
     }
-    let filerObj = {}
+    let filterObj = {}
     id && (filterObj.id = id)
     userId && (filterObj.userId = userId);
     category && (filterObj.category = category);
-
+    console.log(filterObj)
     const skip = (page - 1) * limit
     try {
-        const totalDoc = await Model.countDocuments(filerObj)
+        const totalDoc = await Model.countDocuments(filterObj)
         const totalPages = Math.ceil(totalDoc / limit)
         if (totalDoc === 0) return {
             totalDoc: 0,
