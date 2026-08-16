@@ -16,8 +16,8 @@ const fieldCheck = (fields) => {
 }
 const getBudget = asyncHandler(async (req, res) => {
     const user = await Users.findById(req.user._id)
-    if (!user && !user.budget) {
-        throw new ApiError(400, "No user budget found")
+    if (!user.budget) {
+        throw new ApiError(404, "No user budget found")
     }
     return res.status(200)
         .json(
@@ -60,9 +60,9 @@ const createExpense = asyncHandler(async (req, res) => {
     const createExpense = await manageExpense.addExpense(name, amount, category)
     const { updatedBudget, totalSpend } = await manageExpense.getAndSaveRemainingBudget(createExpense._id)
     
-    return res.status(200)
+    return res.status(201)
         .json(
-            new ApiResponse(200, "Expense created", { createExpense, updatedBudget, totalSpend })
+            new ApiResponse(201, "Expense created", { createExpense, updatedBudget, totalSpend })
         )
 
 })
@@ -101,8 +101,11 @@ const showAllExpense = asyncHandler(async (req, res) => {
         userId 
     }
     const getAllExpenses = await paginate(Expense, options)
-    if (!getAllExpenses) {
-        throw new ApiError(400, "No Expense found")
+    if (getAllExpenses.fetchedDoc === 0 ) {
+        return res.status(200)
+        .json(
+            new ApiResponse(200 , "No" , expensesData)
+        )
     }
     return res.status(200)
         .json(
@@ -119,9 +122,9 @@ const deleteExpense = asyncHandler(async (req, res) => {
     const user = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(user.budget, user._id)
     const { message, restoreBudget, newBudget } = await expense.delExpense(expenseId, ans1, ans2)
-    return res.status(200)
+    return res.status(204)
         .json(
-            new ApiResponse(200, message, { restoreBudget, newBudget })
+            new ApiResponse(204, message, { restoreBudget, newBudget })
         )
 
 
@@ -154,7 +157,10 @@ const getExpenseById = asyncHandler(async (req, res) => {
     const {expenseId} = req.params
     const getExpense = await Expense.findById(expenseId)
     if (!getExpense) {
-        throw new ApiError(400, "No Expense Found by id.")
+        return res.status(200)
+        .json(
+            new ApiResponse(200 , "No expense found By id" , {})
+        )
     }
     return res.status(200)
         .json(
