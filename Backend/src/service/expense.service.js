@@ -120,7 +120,8 @@ export class ExpenseTracker {
             return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget, newBudget };
         } else {
 
-            await History.create({ expenseId: expense._id, userId: this.userId });
+            await History.create({ expense: expense._id, userId: this.userId });
+
             await Expense.findByIdAndDelete(expenseId);
             return { message: "Expense archived to history", restoredBudget: rule.restoreBudget, newBudget };
         }

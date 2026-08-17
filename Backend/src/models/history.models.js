@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const historySchema = new mongoose.Schema({
+    userId : {
+        type :  String,
+        required : true
+    },
     routine : {
         type : mongoose.Schema.Types.ObjectId, //get all routines 
         ref : "Routine"
