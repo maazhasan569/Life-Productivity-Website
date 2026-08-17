@@ -61,7 +61,7 @@ export class ExpenseTracker {
             return updateUserExpense;
 
         } catch (error) {
-            throw new ApiError(500, error.msg)
+            throw new ApiError(500, error.message)
         }
 
     }
@@ -85,6 +85,7 @@ export class ExpenseTracker {
     }
 
     async delExpense(expenseId, ans1, ans2) {
+        try{
         if (ans1 === "No" && !ans2) {
             ans2 = "No";
         }
@@ -119,12 +120,15 @@ export class ExpenseTracker {
             await Expense.findByIdAndDelete(expenseId);
             return { message: "Expense permanently deleted", restoredBudget: rule.restoreBudget, newBudget };
         } else {
-
-            await History.create({ expense: expense._id, userId: this.userId });
-
+            
+            await History.create({ expenses: expenseId, userId: this.userId });
+            console.log('pushed to history' , {hllk: 31})
             await Expense.findByIdAndDelete(expenseId);
             return { message: "Expense archived to history", restoredBudget: rule.restoreBudget, newBudget };
         }
+    }catch(err){
+        throw new ApiError(500 , err.message)
+    }
     }
 
 

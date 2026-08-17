@@ -122,9 +122,9 @@ const deleteExpense = asyncHandler(async (req, res) => {
     const user = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(user.budget, user._id)
     const { message, restoreBudget, newBudget } = await expense.delExpense(expenseId, ans1, ans2)
-    return res.status(204)
+    return res.status(200)
         .json(
-            new ApiResponse(204, message, { restoreBudget, newBudget })
+            new ApiResponse(200, message, { restoreBudget, newBudget })
         )
 
 
