@@ -15,10 +15,23 @@ const goalsSchema = new mongoose.Schema({
         type : Date,
         required : true
     },
+    targetAmount :{
+        type : Number,
+        required : true
+    },
+    currentAmt : {
+        type : Number,
+        required : true
+    },
     status : {
         type : String,
-        default : "Working"
+        default : "Working",
+        enum : {
+            values : ["InProgress" , "Abondened" , "Achieved"],
+            message : "InProgress , Abondened , Achieved are acceptable"
+        }
     }
+
 }, {
     timestamps: true
 })

@@ -11,7 +11,11 @@ const loanSchema = new mongoose.Schema({
         enum : ['Lent' , "Borrowed"]
     },
     loanAmt : {
-        type : String,
+        type : Number,
+        required : true
+    },
+    currentAmt :{
+        type : Number,
         required : true
     },
     dueDate : {
