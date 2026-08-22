@@ -27,8 +27,8 @@ const goalsSchema = new mongoose.Schema({
         type : String,
         default : "Working",
         enum : {
-            values : ["InProgress" , "Abondened" , "Achieved"],
-            message : "InProgress , Abondened , Achieved are acceptable"
+            values : ["InProgress" , "Paused", "Abondened" , "Achieved"],
+            message : "InProgress , Paused , Abondened , Achieved are acceptable"
         }
     },
     autoDeduction : {

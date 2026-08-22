@@ -130,7 +130,7 @@ class Goal {
         const totalMonths = yearDiff * 12 + monthDiff;
         return totalMonths
     }
-    deductAmount() {
+    deductAmount(userId) {
         const deadline = this.getDeadlineTime
         const deductAmt = this.targetAmount / deadline.totalMonths
         crone.schedule('0 0 * * *', async () => {
@@ -143,9 +143,17 @@ class Goal {
                         const lastMonth = goal.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
-                        if (goal.deductionsCompleted >= goal.goalDurationMonths) {
+                        if (autoDeductionGoals.deductionsCompleted >= goal.goalDurationMonths) {
                             continue;
                         }
+                        
+                        const user = await Users.findById(userId)
+                        const income = user.income * 0.25
+                        if(user.netIncome <= income){
+                            autoDeductionGoals.status = "Paused"
+                            return "Goal Paused"
+                        }
+
                         autoDeductionGoals.targetAmount -= deductAmt
                         autoDeductionGoals.lastDeduction = new Date()
                         autoDeductionGoals.totalDeductions += 1
@@ -160,8 +168,11 @@ class Goal {
                         autoDeductionGoals.deductionDay = nextDate;
 
                         await goal.save();
+
                     }
                 }
+            }catch(err){
+                throw new ApiError(500 , err.message)
             }
         })
 
