@@ -140,7 +140,7 @@ class Goal {
                 const autoDeductionGoals = await Goal.find({ autoDeduction: true })
                 for (const goal of goals) {
                     if (currentDay === autoDeductionGoals.deductionDay) {
-                        const lastMonth = goal.lastDeduction?.getMonth()
+                        const lastMonth = autoDeductionGoals.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
                         if (autoDeductionGoals.deductionsCompleted >= goal.goalDurationMonths) {
@@ -151,9 +151,11 @@ class Goal {
                         const income = user.income * 0.25
                         if(user.netIncome <= income){
                             autoDeductionGoals.status = "Paused"
+                            await goal.save()
                             return "Goal Paused"
                         }
-
+                        
+                        autoDeductionGoals.status = "Active"
                         autoDeductionGoals.targetAmount -= deductAmt
                         autoDeductionGoals.lastDeduction = new Date()
                         autoDeductionGoals.totalDeductions += 1
@@ -167,7 +169,9 @@ class Goal {
                         }
                         autoDeductionGoals.deductionDay = nextDate;
 
-                        await goal.save();
+                        const savedGoal = await goal.save();
+
+                        return savedGoal
 
                     }
                 }
