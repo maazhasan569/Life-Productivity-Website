@@ -232,7 +232,8 @@ class Goal {
     }
 
     async editGoal(goalID) {
-        if (!goalID) {
+        try{
+            if (!goalID) {
             throw new ApiError(400, "No goal id found")
         }
         this.validiateGoal()
@@ -246,7 +247,11 @@ class Goal {
             { new: true }
         )
         return updatedGoal
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
     }
 
 }
 
+//task : add validition to add minimum of 1month of goal
