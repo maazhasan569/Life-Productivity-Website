@@ -195,12 +195,18 @@ class Goal {
             if (goal.totalDeductions >= this.getDeadlineTime) {
                 continue;
             }
+            const remainingAmount = this.targetAmount - goal.currentAmt
+            const deductAmount = remainingAmount / this.deadline
+            const AllGoal = await Goal.find({ autoDeduction: false })
+            for (goals of goal) { // check all goal whether they are 
+                if (goals.targetAmount === 0 && this.getDeadlineTime === 0) {
+                    goals.status = "UnAchieved"
+                    await goal.save()
+                }
+            }
             if (!amount || amount > 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
-
-            const remainingAmount = this.targetAmount - goal.currentAmt
-            const deductAmount = remainingAmount / this.deadline
             const user = await Users.findById(userId)
             const income = user.income * 0.25
             if (user.netIncome <= income) {
@@ -208,17 +214,14 @@ class Goal {
                 await goal.save()
                 throw new ApiError(400, "Cant contribute to goal. Less income left")
             }
-
             goal.status = "InProgress"
             goal.targetAmount -= deductAmount
             goal.currentAmt += deductAmount
             goal.lastDeduction = new Date()
             goal.totalDeductions += 1
             user.income -= deductAmount
-
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
-
             return { updatedGoal, updatedUser }
         } catch (err) {
             throw new ApiError(500, err.message)
