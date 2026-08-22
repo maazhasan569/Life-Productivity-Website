@@ -19,6 +19,13 @@ const goalsSchema = new mongoose.Schema({
         type : String,
         default : "Working"
     },
+    type : {
+        type : String,
+        enum : {
+            values : ["Monthly" , "Yearly"],
+            message : "Only Monthly or Yearly goals are valid"
+        }
+    },
     autoDeduction : {
         type : Boolean,
         default : false
