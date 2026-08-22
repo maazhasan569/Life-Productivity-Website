@@ -231,5 +231,22 @@ class Goal {
 
     }
 
+    async editGoal(goalID) {
+        if (!goalID) {
+            throw new ApiError(400, "No goal id found")
+        }
+        this.validiateGoal()
+        const updatedGoal = await Goal.findByIdAndUpdate(
+            goalId,
+            {
+                goalName: this.name,
+                achievmentDate: this.targetDate,
+                targetAmount: this.targetAmount,
+            },
+            { new: true }
+        )
+        return updatedGoal
+    }
+
 }
 

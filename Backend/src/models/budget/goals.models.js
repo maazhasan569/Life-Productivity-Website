@@ -31,6 +31,8 @@ const goalsSchema = new mongoose.Schema({
             message : "InProgress , Paused , Abondened , Achieved are acceptable"
         }
     },
+
+    }
     autoDeduction : {
         type : Boolean,
         default : false
