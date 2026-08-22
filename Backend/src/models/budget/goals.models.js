@@ -42,6 +42,9 @@ const goalsSchema = new mongoose.Schema({
     totalDeductions : {
         type : Number,
         default : 0
+    },
+    lastDeduction: {
+        type : Date
     }
 
 }, {

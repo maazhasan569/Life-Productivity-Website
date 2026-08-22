@@ -2,6 +2,7 @@ import { Expense } from "../models/budget/expense.models";
 import { Goal } from "../models/budget/goals.models";
 import { Users } from "../models/users.models";
 import ApiError from "../utils/ApiError";
+import crone from "node-cron"
 class Goal {
     constructor(id, config = {}) {
         this.id = id;
@@ -58,8 +59,9 @@ class Goal {
     }
     deductAmount() {
         const deadline = this.getDeadlineTime
-        const deductAmt = this.targetAmount/deadline.totalMonths
-        for(let i=0 ; i<= deadline.totalMonths ; i++){
+        const deductAmt = this.targetAmount / deadline.totalMonths
+
+        if (this.autoDeduction) {
 
         }
 
@@ -130,10 +132,38 @@ class Goal {
     }
     deductAmount() {
         const deadline = this.getDeadlineTime
-        const deductAmt = this.targetAmount/deadline.totalMonths
-        for(let i=0 ; i<= deadline.totalMonths ; i++){
-            
-        }
+        const deductAmt = this.targetAmount / deadline.totalMonths
+        crone.schedule('0 0 * * *', async () => {
+            try {
+                const today = new Date()
+                const currentDay = today.getDate()
+                const autoDeductionGoals = await Goal.find({ autoDeduction: true })
+                for (const goal of goals) {
+                    if (currentDay === autoDeductionGoals.deductionDay) {
+                        const lastMonth = goal.lastDeduction?.getMonth()
+                        const thisMonth = today.getMonth()
+                        if (lastMonth === thisMonth) continue;
+                        if (goal.deductionsCompleted >= goal.goalDurationMonths) {
+                            continue;
+                        }
+                        autoDeductionGoals.targetAmount -= deductAmt
+                        autoDeductionGoals.lastDeduction = new Date()
+                        autoDeductionGoals.totalDeductions += 1
+
+                        const nextDate = new Date()
+                        nextDate.setMonth(nextDate.getMonth() + 1)
+                        nextDate.setDate(goal.deductionDay)
+
+                        if (nextDate.getDate() !== autoDeductionGoals.deductionDay) {
+                            nextDate.setDate(0)
+                        }
+                        autoDeductionGoals.deductionDay = nextDate;
+
+                        await goal.save();
+                    }
+                }
+            }
+        })
 
 
 
