@@ -32,7 +32,6 @@ const goalsSchema = new mongoose.Schema({
         }
     },
 
-    }
     autoDeduction : {
         type : Boolean,
         default : false
