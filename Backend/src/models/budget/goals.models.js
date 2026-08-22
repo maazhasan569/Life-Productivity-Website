@@ -31,6 +31,13 @@ const goalsSchema = new mongoose.Schema({
             message : "InProgress , Paused , Abondened , Achieved are acceptable"
         }
     },
+    type : {
+        type : String,
+        enum : {
+            values : ["Monthly" , "Yearly"],
+            message : "Only Monthly or Yearly goals are valid"
+        }
+    },
 
     autoDeduction : {
         type : Boolean,
