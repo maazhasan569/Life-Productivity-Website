@@ -18,6 +18,18 @@ const goalsSchema = new mongoose.Schema({
     status : {
         type : String,
         default : "Working"
+    },
+    autoDeduction : {
+        type : Boolean,
+        default : false
+    },
+    deductionsRemaining : {
+        type : Number,
+        default : 0
+    },
+    totalDeductions : {
+        type : Number,
+        default : 0
     }
 }, {
     timestamps: true
