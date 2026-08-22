@@ -172,7 +172,7 @@ class Goal {
 
                         const updatedGoal = await goal.save();
                         const updatedUser = await goal.save()
-                        return {updatedGoal , updatedUser}
+                        return { updatedGoal, updatedUser }
 
                     }
                 }
@@ -185,40 +185,44 @@ class Goal {
 
     }
     async manualDeduction(amount, id) {
-        const deadline = this.getDeadlineTime
-        const goal = await Goal.findById(id)
-        const lastMonth = goal.lastDeduction?.getMonth()
-        const thisMonth = today.getMonth()
-        if (lastMonth === thisMonth) continue;
-        
-        if (goal.totalDeductions >= this.getDeadlineTime) {
-            continue;
-        }
-        if (!amount || amount > 0) {
-            throw new ApiError(400, "Enter a valid amount")
-        }
-        
-        const remainingAmount = this.targetAmount - goal.currentAmt
-        const deductAmount = remainingAmount / this.deadline
-        const user = await Users.findById(userId)
-        const income = user.income * 0.25
-        if (user.netIncome <= income) {
-            goal.status = "Paused"
-            await goal.save()
-            throw new ApiError(400, "Cant contribute to goal. Less income left")
-        }
+        try {
+            const deadline = this.getDeadlineTime
+            const goal = await Goal.findById(id)
+            const lastMonth = goal.lastDeduction?.getMonth()
+            const thisMonth = today.getMonth()
+            if (lastMonth === thisMonth) continue;
 
-        goal.status = "InProgress"
-        goal.targetAmount -= deductAmount
-        goal.currentAmt += deductAmount
-        goal.lastDeduction = new Date()
-        goal.totalDeductions += 1
-        user.income -= deductAmount
+            if (goal.totalDeductions >= this.getDeadlineTime) {
+                continue;
+            }
+            if (!amount || amount > 0) {
+                throw new ApiError(400, "Enter a valid amount")
+            }
 
-        const updatedGoal = await goal.save()
-        const updatedUser = await user.save()
+            const remainingAmount = this.targetAmount - goal.currentAmt
+            const deductAmount = remainingAmount / this.deadline
+            const user = await Users.findById(userId)
+            const income = user.income * 0.25
+            if (user.netIncome <= income) {
+                goal.status = "Paused"
+                await goal.save()
+                throw new ApiError(400, "Cant contribute to goal. Less income left")
+            }
 
-        return {updatedGoal , updatedUser}
+            goal.status = "InProgress"
+            goal.targetAmount -= deductAmount
+            goal.currentAmt += deductAmount
+            goal.lastDeduction = new Date()
+            goal.totalDeductions += 1
+            user.income -= deductAmount
+
+            const updatedGoal = await goal.save()
+            const updatedUser = await user.save()
+
+            return { updatedGoal, updatedUser }
+        } catch (err) {
+            throw new ApiError(500, err.message)
+        }
 
 
 
