@@ -30,6 +30,18 @@ const goalsSchema = new mongoose.Schema({
             values : ["InProgress" , "Abondened" , "Achieved"],
             message : "InProgress , Abondened , Achieved are acceptable"
         }
+    },
+    autoDeduction : {
+        type : Boolean,
+        default : false
+    },
+    deductionsRemaining : {
+        type : Number,
+        default : 0
+    },
+    totalDeductions : {
+        type : Number,
+        default : 0
     }
 
 }, {
