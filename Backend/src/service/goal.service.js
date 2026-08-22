@@ -130,7 +130,7 @@ class Goal {
         const totalMonths = yearDiff * 12 + monthDiff;
         return totalMonths
     }
-    deductAmount(userId) {
+    autoDeductAmount(userId) {
         const deadline = this.getDeadlineTime
         const deductAmt = this.targetAmount / deadline.totalMonths
         crone.schedule('0 0 * * *', async () => {
@@ -143,20 +143,21 @@ class Goal {
                         const lastMonth = autoDeductionGoals.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
-                        if (autoDeductionGoals.deductionsCompleted >= goal.goalDurationMonths) {
+                        if (autoDeductionGoals.totalDeductions >= this.getDeadlineTime) {
                             continue;
                         }
-                        
+
                         const user = await Users.findById(userId)
                         const income = user.income * 0.25
-                        if(user.netIncome <= income){
+                        if (user.netIncome <= income) {
                             autoDeductionGoals.status = "Paused"
                             await goal.save()
                             return "Goal Paused"
                         }
-                        
-                        autoDeductionGoals.status = "Active"
-                        autoDeductionGoals.targetAmount -= deductAmt
+
+                        autoDeductionGoals.status = "InProgress"
+                        autoDeductionGoals.currentAmt += deductAmt
+                        user.income -= deductAmt
                         autoDeductionGoals.lastDeduction = new Date()
                         autoDeductionGoals.totalDeductions += 1
 
@@ -169,21 +170,57 @@ class Goal {
                         }
                         autoDeductionGoals.deductionDay = nextDate;
 
-                        const savedGoal = await goal.save();
-
-                        return savedGoal
+                        const updatedGoal = await goal.save();
+                        const updatedUser = await goal.save()
+                        return {updatedGoal , updatedUser}
 
                     }
                 }
-            }catch(err){
-                throw new ApiError(500 , err.message)
+            } catch (err) {
+                throw new ApiError(500, err.message)
             }
         })
 
 
 
     }
-    deadLineAlert() {
+    async manualDeduction(amount, id) {
+        const deadline = this.getDeadlineTime
+        const goal = await Goal.findById(id)
+        const lastMonth = goal.lastDeduction?.getMonth()
+        const thisMonth = today.getMonth()
+        if (lastMonth === thisMonth) continue;
+        
+        if (goal.totalDeductions >= this.getDeadlineTime) {
+            continue;
+        }
+        if (!amount || amount > 0) {
+            throw new ApiError(400, "Enter a valid amount")
+        }
+        
+        const remainingAmount = this.targetAmount - goal.currentAmt
+        const deductAmount = remainingAmount / this.deadline
+        const user = await Users.findById(userId)
+        const income = user.income * 0.25
+        if (user.netIncome <= income) {
+            goal.status = "Paused"
+            await goal.save()
+            throw new ApiError(400, "Cant contribute to goal. Less income left")
+        }
+
+        goal.status = "InProgress"
+        goal.targetAmount -= deductAmount
+        goal.currentAmt += deductAmount
+        goal.lastDeduction = new Date()
+        goal.totalDeductions += 1
+        user.income -= deductAmount
+
+        const updatedGoal = await goal.save()
+        const updatedUser = await user.save()
+
+        return {updatedGoal , updatedUser}
+
+
 
     }
 
