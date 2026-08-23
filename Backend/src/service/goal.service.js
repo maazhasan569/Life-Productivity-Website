@@ -251,6 +251,37 @@ class Goal {
             throw new ApiError(500 , err.message)
         }
     }
+    async deleteGoal(goalId){
+        if(goalId){
+            throw new ApiError(400 , "No goal id found")
+        }
+        try{
+            //find and update the goal status
+            //add goal balance to income
+            //delete the goal 
+            //add the deleted goal to history
+            
+            const updateGoal = await Goal.findByIdAndUpdate(
+                goalId,
+                {
+                    status : "Abondened"
+                },
+                {new : true}
+            )
+            if(!updateGoal){
+                throw new ApiError(400 , "Goal id not found")
+            }
+            const user = await Users.findById(this.id)
+            user.netIncome -= updateGoal.currentAmt
+            const updatedUserIncome = await user.save()
+            const deleteGoal = await Goal.findByIdAndDelete(goalId)
+            const updateGoalHistory = await History.create({
+                
+            })
+
+            
+        }
+    }
 
 }
 
