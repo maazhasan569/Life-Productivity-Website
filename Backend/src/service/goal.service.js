@@ -251,7 +251,7 @@ class Goal {
             throw new ApiError(500 , err.message)
         }
     }
-    async deleteGoal(goalId){
+    async deleteGoal(goalId,userId){
         if(goalId){
             throw new ApiError(400 , "No goal id found")
         }
@@ -275,12 +275,14 @@ class Goal {
             user.netIncome -= updateGoal.currentAmt
             const updatedUserIncome = await user.save()
             const deleteGoal = await Goal.findByIdAndDelete(goalId)
-            const updateGoalHistory = await History.create({
-                
-            })
+            const updateGoalHistory = await History.find({userId : this.id})
+            
+            return { message : {}}
 
             
-        }
+        }catch(err){
+        throw new ApiError(500 , err.message)
+    }
     }
 
 }
