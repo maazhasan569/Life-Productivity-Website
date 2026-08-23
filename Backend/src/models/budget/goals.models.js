@@ -49,8 +49,10 @@ const goalsSchema = new mongoose.Schema({
     },
     lastDeduction: {
         type : Date
+    },
+    deductionDay:{
+        type : Date
     }
-    
 
 }, {
     timestamps: true
