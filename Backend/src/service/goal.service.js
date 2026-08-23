@@ -144,44 +144,47 @@ class Goal {
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
                         if (goal.totalDeduction >= this.getDeadlineTime) {
-                            goals.targetAmount === 0? 
-                            goal.status = "UnAchieved" : goal.status = "Achieved"
+                            goals.targetAmount === 0 ?
+                                goal.status = "UnAchieved" : goal.status = "Achieved"
                             await goal.save()
-                   
-                }
+
                         }
-
-                        const user = await Users.findById(userId)
-                        const income = user.income * 0.25
-                        if (user.netIncome <= income) {
-                            autoDeductionGoals.status = "Paused"
-                            await goal.save()
-                        }
-                        goal.status = "InProgress"
-                        goal.currentAmt += deductAmt
-                        user.netIncome -= deductAmt
-                        const deductionDay = goal.lastDeduction = new Date()
-                        goal.totalDeductions += 1
-
-                        const nextDate = new Date()
-                        nextDate.setMonth(nextDate.getMonth() + 1)
-                        nextDate.setDate(deductionDay)
-
-                        if (nextDate.getDate() !== nextDeductionDay) {
-                             nextDate.setDate(0)
-                        }
-                        goal.deductionDay = nextDate;
-
-                        const updatedGoal = await goal.save();
-                        const updatedUser = await goal.save()
-                        return { updatedGoal, updatedUser }
-
                     }
+
+                    const user = await Users.findById(userId)
+                    const income = user.income * 0.25
+                    if (user.netIncome <= income) {
+                        autoDeductionGoals.status = "Paused"
+                        await goal.save()
+                    }
+                    goal.status = "InProgress"
+                    goal.currentAmt += deductAmt
+                    user.netIncome -= deductAmt
+                    goal.lastDeduction = new Date()
+                    goal.totalDeductions += 1
+                    const orgDate = new Date(goal.createdAt).getDate()
+                    const currentDay = new Date()
+                    const targetMonth = currentDay.getMonth() + 1
+                    const targetYear = currentDay.getFullYear()
+
+                    if (targetMonth > 11) {
+                        targetMonth = 0
+                        targetYear += 1
+                    }
+                    const getTargetDate = new Date(targetYear, targetMonth + 1, 0).getDate();
+                    const safeDay = Math.min(getTargetDate, orgDate)
+
+                    goal.deductionDay = new Date(targetYear, targetMonth, safeDay)
+
+                    const updatedGoal = await goal.save();
+                    const updatedUser = await goal.save()
+                    return { updatedGoal, updatedUser }
+
                 }
+            }
             } catch (err) {
-                throw new ApiError(500, err.message)
-            })
-    
+            throw new ApiError(500, err.message)
+        })
 
 
 
@@ -234,57 +237,57 @@ class Goal {
     }
 
     async editGoal(goalID) {
-        try{
+        try {
             if (!goalID) {
-            throw new ApiError(400, "No goal id found")
-        }
-        this.validiateGoal()
-        const updatedGoal = await Goal.findByIdAndUpdate(
-            goalId,
-            {
-                goalName: this.name,
-                achievmentDate: this.targetDate,
-                targetAmount: this.targetAmount,
-            },
-            { new: true }
-        )
-        return updatedGoal
-        }catch(err){
-            throw new ApiError(500 , err.message)
+                throw new ApiError(400, "No goal id found")
+            }
+            this.validiateGoal()
+            const updatedGoal = await Goal.findByIdAndUpdate(
+                goalId,
+                {
+                    goalName: this.name,
+                    achievmentDate: this.targetDate,
+                    targetAmount: this.targetAmount,
+                },
+                { new: true }
+            )
+            return updatedGoal
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
     }
-    async deleteGoal(goalId,userId){
-        if(goalId){
-            throw new ApiError(400 , "No goal id found")
+    async deleteGoal(goalId, userId) {
+        if (goalId) {
+            throw new ApiError(400, "No goal id found")
         }
-        try{
+        try {
             //find and update the goal status
             //add goal balance to income
             //delete the goal 
             //add the deleted goal to history
-            
+
             const updateGoal = await Goal.findByIdAndUpdate(
                 goalId,
                 {
-                    status : "Abondened"
+                    status: "Abondened"
                 },
-                {new : true}
+                { new: true }
             )
-            if(!updateGoal){
-                throw new ApiError(400 , "Goal id not found")
+            if (!updateGoal) {
+                throw new ApiError(400, "Goal id not found")
             }
             const user = await Users.findById(this.id)
             user.netIncome -= updateGoal.currentAmt
             const updatedUserIncome = await user.save()
             const deleteGoal = await Goal.findByIdAndDelete(goalId)
-            const updateGoalHistory = await History.find({userId : this.id})
-            
-            return { message : {}}
+            const updateGoalHistory = await History.find({ userId: this.id })
 
-            
-        }catch(err){
-        throw new ApiError(500 , err.message)
-    }
+            return { message: {} }
+
+
+        } catch (err) {
+            throw new ApiError(500, err.message)
+        }
     }
 
 }
