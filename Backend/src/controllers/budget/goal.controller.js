@@ -3,6 +3,7 @@ import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { paginate } from "../../utils/pagination";
 import { Goal } from "../../service/goal.service";
+import ApiError from "../../utils/ApiError";
 
 
 const getGoalById = asyncHandler(async (req, res) => {
@@ -27,9 +28,12 @@ const getAllGoals = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
+    if(!goalsData){
+        throw new ApiError(404, "Goals not found" )
+    }
     return res.status(200)
         .json(
-            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData)
+            new ApiResponse(200, "fetched All goals" , goalsData)
         )
 })
 const getGoalsByCategory = asyncHandler(async (req, res) => {
@@ -45,11 +49,12 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
+    if(!goalsData.length){
+        throw new ApiError(404 , "Goal not found")
+    }
     return res.status(200)
         .json(
-            new ApiResponse(200, goalsData ?
-                "fetched user goals" : "No goals found",
-                goalsData)
+            new ApiResponse(200, "fetched user goal by category" , goalsData)
         )
 
 })
@@ -63,12 +68,30 @@ const editGoal = asyncHandler(async (req, res) => {
         targetAmount
     })
     const updateGoal = await goal.editGoal(goalId)
+    if (!updateGoal) {
+       throw new ApiError(404 , "Goal not found")
+    }
     return res.status(200)
         .json(
-            new ApiResponse(200, updateGoal ?
-                "Goal updated" : "Goal not found", updateGoal
+            new ApiResponse(200, "Goal updated", updateGoal
             )
         )
 })
 
-const deleteGoal = 
+const delGoal = asyncHandler(async (req, res) => {
+    const userId = req.user._id
+    const { goalId } = req.body
+    const goal = new Goal(userId)
+    const del = await goal.deleteGoal(goalId)
+
+    if (!del) {
+        return res.status(404).json(
+            new ApiResponse(404, del, "Goal not found")
+        );
+    }
+
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Goal deleted", del)
+        )
+})
