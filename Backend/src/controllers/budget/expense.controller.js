@@ -104,7 +104,7 @@ const showAllExpense = asyncHandler(async (req, res) => {
     if (getAllExpenses.fetchedDoc === 0 ) {
         return res.status(200)
         .json(
-            new ApiResponse(200 , "No" , expensesData)
+            new ApiResponse(200 , "No Expense found" , [])
         )
     }
     return res.status(200)
