@@ -179,7 +179,7 @@ export class Goal {
 
     async editGoal(goalId) {
         try {
-            if (!goalID) {
+            if (!goalId) {
                 throw new ApiError(400, "No goal id found")
             }
             this.validiateGoal()
@@ -231,4 +231,6 @@ export class Goal {
     }
 
 }
+
+
 

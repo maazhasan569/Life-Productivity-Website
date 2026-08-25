@@ -28,12 +28,12 @@ const getAllGoals = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
-    if(!goalsData){
-        throw new ApiError(404, "Goals not found" )
+    if (!goalsData) {
+        throw new ApiError(404, "Goals not found")
     }
     return res.status(200)
         .json(
-            new ApiResponse(200, "fetched All goals" , goalsData)
+            new ApiResponse(200, "fetched All goals", goalsData)
         )
 })
 const getGoalsByCategory = asyncHandler(async (req, res) => {
@@ -49,12 +49,12 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
-    if(!goalsData.length){
-        throw new ApiError(404 , "Goal not found")
+    if (!goalsData.length) {
+        throw new ApiError(404, "Goal not found")
     }
     return res.status(200)
         .json(
-            new ApiResponse(200, "fetched user goal by category" , goalsData)
+            new ApiResponse(200, "fetched user goal by category", goalsData)
         )
 
 })
@@ -69,7 +69,7 @@ const editGoal = asyncHandler(async (req, res) => {
     })
     const updateGoal = await goal.editGoal(goalId)
     if (!updateGoal) {
-       throw new ApiError(404 , "Goal not found")
+        throw new ApiError(404, "Goal not found")
     }
     return res.status(200)
         .json(
@@ -94,4 +94,14 @@ const delGoal = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, "Goal deleted", del)
         )
+})
+
+const autoDeductAmt = asyncHandler(async (req, res) => {
+
+})
+const manualDeduction = asyncHandler(async (req, res) => {
+
+})
+const totalGoalsAmt = asyncHandler(async(req,res) => {
+    
 })
