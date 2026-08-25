@@ -1,3 +1,4 @@
+import { Goal } from "../../models/budget/goals.models";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { paginate } from "../../utils/pagination";
@@ -22,9 +23,28 @@ const getAllGoals = asyncHandler(async (req, res) => {
         userId
     }
 
-    const getAllGoals = await paginate(Goal, options)
+    const goalsData = await paginate(Goal, options)
     return res.status(200)
         .json(
-            new ApiResponse(200, getAllGoals ? "fetched user goals" : "No goals found", getAllGoals ? getAllGoals : [])
+            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData ? goalsData : [])
         )
+})
+const getGoalsByCategory = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, sortBy, sortType, category } = req.query
+    const userId = req.user._id
+    const options = {
+        page,
+        limit,
+        sortBy: sortBy || "createdAt",
+        sortType: sortType || "asc",
+        category,
+        userId
+    }
+
+    const goalsData = await paginate(Goal, options)
+    return res.status(200)
+        .json(
+            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData ? goalsData : [])
+        )
+
 })
