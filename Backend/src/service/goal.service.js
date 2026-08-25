@@ -4,7 +4,7 @@ import { Goal } from "../models/budget/goals.models";
 import { Users } from "../models/users.models";
 import ApiError from "../utils/ApiError";
 import cron from "node-cron"
-class Goal {
+export class Goal {
     constructor(id, config = {}) {
         this.id = id;
         this.name = config.name || null;

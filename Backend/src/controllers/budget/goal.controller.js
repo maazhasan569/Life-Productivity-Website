@@ -2,10 +2,13 @@ import { Goal } from "../../models/budget/goals.models";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { paginate } from "../../utils/pagination";
+import { Goal } from "../../service/goal.service";
+
 
 const getGoalById = asyncHandler(async (req, res) => {
     const { goalId } = req.params
-    const getGoal = await Goal.findById(goalId)
+    const userId = req.user._id
+    const getGoal = await Goal.findOne({ goalId, userId })
     res.status(200)
         .json(
             new ApiResponse(200, getGoal ? "Goal fetched" : "Goal not found by Id", getGoal ? getGoal : {})
@@ -26,7 +29,7 @@ const getAllGoals = asyncHandler(async (req, res) => {
     const goalsData = await paginate(Goal, options)
     return res.status(200)
         .json(
-            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData ? goalsData : [])
+            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData)
         )
 })
 const getGoalsByCategory = asyncHandler(async (req, res) => {
@@ -44,7 +47,27 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
     const goalsData = await paginate(Goal, options)
     return res.status(200)
         .json(
-            new ApiResponse(200, goalsData ? "fetched user goals" : "No goals found", goalsData ? goalsData : [])
+            new ApiResponse(200, goalsData ? 
+                "fetched user goals" : "No goals found",
+                goalsData)
         )
 
+})
+
+const editGoal = asyncHandler(async (req, res) => {
+    const { name, achievmentDate, targetAmount } = req.body
+    const {goalId} = req.params
+    const goal = new Goal(req.user, {
+        name,
+        achievmentDate,
+        targetAmount
+    })
+    const updateGoal = goal.editGoal(goalId)
+    const isGoal = Object.keys(updateGoal).length === 0
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , isGoal ?
+            "Goal updated" : "Goal not found" , updateGoal
+        )
+    )
 })

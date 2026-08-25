@@ -24,19 +24,19 @@ const getBudget = asyncHandler(async (req, res) => {
             new ApiResponse(200, "fetched user budget", user.budget)
         )
 })
-const updatedBudget = asyncHandler(async(req,res)=> {
-    const {budget} = req.body
+const updatedBudget = asyncHandler(async (req, res) => {
+    const { budget } = req.body
     const user = await Users.findById(req.user._id)
-    const isPrevBudget = user.budget > 0? true : false
+    const isPrevBudget = user.budget > 0 ? true : false
     user.budget = user.budget + budget
-    const updatedBudget = await user.save({validateBeforeSave : false})
-    if(!updatedBudget){
-        throw new ApiError(500 , "Failed to save user budget")
+    const updatedBudget = await user.save({ validateBeforeSave: false })
+    if (!updatedBudget) {
+        throw new ApiError(500, "Failed to save user budget")
     }
     return res.status(200)
-    .json(
-        new ApiResponse(200 , isPrevBudget? "budget update,previous budget added" : "budget updated" , updatedBudget)
-    )
+        .json(
+            new ApiResponse(200, isPrevBudget ? "budget update,previous budget added" : "budget updated", updatedBudget)
+        )
 })
 const createExpense = asyncHandler(async (req, res) => {
     //if there is any loan,goal,
@@ -59,7 +59,7 @@ const createExpense = asyncHandler(async (req, res) => {
     const manageExpense = new ExpenseTracker(userBudget, req.user._id)
     const createExpense = await manageExpense.addExpense(name, amount, category)
     const { updatedBudget, totalSpend } = await manageExpense.getAndSaveRemainingBudget(createExpense._id)
-    
+
     return res.status(201)
         .json(
             new ApiResponse(201, "Expense created", { createExpense, updatedBudget, totalSpend })
@@ -74,38 +74,38 @@ const editExpense = asyncHandler(async (req, res) => {
     if (check) {
         throw new ApiError(400, "All fields are required")
     }
-    
+
     const expenseDoc = await Expense.findById(expenseId)
     const userDoc = await Users.findById(req.user._id)
     userDoc.budget += expenseDoc.amount
 
-    await userDoc.save({validateBeforeSave : false})
+    await userDoc.save({ validateBeforeSave: false })
     const updatedUser = await Users.findById(req.user._id)
     const expense = new ExpenseTracker(updatedUser.budget, req.user._id)
-    const updateExpense = await expense.editExpense( expenseId, name, category, amount)
-    const { updatedBudget} = await expense.getAndSaveRemainingBudget(updateExpense._id)
+    const updateExpense = await expense.editExpense(expenseId, name, category, amount)
+    const { updatedBudget } = await expense.getAndSaveRemainingBudget(updateExpense._id)
     return res.status(200)
         .json(
-            new ApiResponse(200, "Expense created", { updateExpense, updatedBudget})
+            new ApiResponse(200, "Expense created", { updateExpense, updatedBudget })
         )
 })
 
 const showAllExpense = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, sortBy, sortType,  } = req.query
+    const { page = 1, limit = 10, sortBy, sortType, } = req.query
     const userId = req.user._id
     const options = {
         page,
         limit,
         sortBy,
         sortType,
-        userId 
+        userId
     }
     const getAllExpenses = await paginate(Expense, options)
-    if (getAllExpenses.fetchedDoc === 0 ) {
+    if (getAllExpenses.fetchedDoc === 0) {
         return res.status(200)
-        .json(
-            new ApiResponse(200 , "No Expense found" , [])
-        )
+            .json(
+                new ApiResponse(200, "No Expense found", [])
+            )
     }
     return res.status(200)
         .json(
@@ -135,8 +135,8 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
     const options = {
         page,
         limit,
-        sortBy : sortBy || "createdAt",
-        sortType : sortType || "asc",
+        sortBy: sortBy || "createdAt",
+        sortType: sortType || "asc",
         category,
         userId
     }
@@ -144,9 +144,9 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
 
     if (expensesData.fetchedDoc.length === 0) {
         return res.status(200)
-        .json(
-            new ApiResponse(200 , "No expense found by category" , expensesData)
-        )
+            .json(
+                new ApiResponse(200, "No expense found by category", expensesData)
+            )
     }
     return res.status(200)
         .json(
@@ -154,13 +154,14 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
         )
 })
 const getExpenseById = asyncHandler(async (req, res) => {
-    const {expenseId} = req.params
-    const getExpense = await Expense.findById(expenseId)
+    const { expenseId } = req.params
+    const userId = req.user._id
+    const getExpense = await Expense.findById({ expenseId, userId })
     if (!getExpense) {
         return res.status(200)
-        .json(
-            new ApiResponse(200 , "No expense found By id" , {})
-        )
+            .json(
+                new ApiResponse(200, "No expense found By id", {})
+            )
     }
     return res.status(200)
         .json(
