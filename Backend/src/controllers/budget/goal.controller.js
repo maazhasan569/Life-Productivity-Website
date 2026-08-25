@@ -47,7 +47,7 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
     const goalsData = await paginate(Goal, options)
     return res.status(200)
         .json(
-            new ApiResponse(200, goalsData ? 
+            new ApiResponse(200, goalsData ?
                 "fetched user goals" : "No goals found",
                 goalsData)
         )
@@ -56,18 +56,19 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
 
 const editGoal = asyncHandler(async (req, res) => {
     const { name, achievmentDate, targetAmount } = req.body
-    const {goalId} = req.params
+    const { goalId } = req.params
     const goal = new Goal(req.user, {
         name,
         achievmentDate,
         targetAmount
     })
-    const updateGoal = goal.editGoal(goalId)
-    const isGoal = Object.keys(updateGoal).length === 0
+    const updateGoal = await goal.editGoal(goalId)
     return res.status(200)
-    .json(
-        new ApiResponse(200 , isGoal ?
-            "Goal updated" : "Goal not found" , updateGoal
+        .json(
+            new ApiResponse(200, updateGoal ?
+                "Goal updated" : "Goal not found", updateGoal
+            )
         )
-    )
 })
+
+const deleteGoal = 

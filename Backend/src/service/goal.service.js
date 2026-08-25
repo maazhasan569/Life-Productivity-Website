@@ -5,8 +5,8 @@ import { Users } from "../models/users.models";
 import ApiError from "../utils/ApiError";
 import cron from "node-cron"
 export class Goal {
-    constructor(id, config = {}) {
-        this.id = id;
+    constructor(userId, config = {}) {
+        this.userId = this.userId;
         this.name = config.name || null;
         this.targetAmount = config.targetAmount || null;
         this.targetDate = config.targetDate || null;
@@ -181,7 +181,7 @@ export class Goal {
             throw new ApiError(500, err.message)
         }
     }
-    async deleteGoal(goalId, userId) {
+    async deleteGoal(goalId) {
         if (goalId) {
             throw new ApiError(400, "No goal id found")
         }
@@ -198,16 +198,15 @@ export class Goal {
                 },
                 { new: true }
             )
-            if (!updateGoal) {
-                throw new ApiError(400, "Goal id not found")
-            }
-            const user = await Users.findById(this.id)
+            if (!updateGoal) return null
+            
+            const user = await Users.findById(this.userId)
             user.netIncome -= updateGoal.currentAmt
             const updatedUserIncome = await user.save()
             const deleteGoal = await Goal.findByIdAndDelete(goalId)
             const updateGoalHistory = await History.find({ userId: this.id })
 
-            return { message: {} }
+            return {}
 
 
         } catch (err) {
