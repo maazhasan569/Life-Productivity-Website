@@ -29,6 +29,7 @@ export const questions = asyncHandler(async (req, res) => {
             identity,
             currency,
             income,
+            netIncome : income - budget,
             budget
 
         },

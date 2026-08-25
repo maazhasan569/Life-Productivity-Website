@@ -14,7 +14,7 @@ export class Goal {
         this.category = config.category || null;
         this.duration = config.duration
         this.autoDeduction = config.autoDeduction
-        this.goalAmount = goalAmount
+        this.goalBalance = goalBalance
         //user will enter goal name,and amt
         //if goal exceed an x amt of bankbalance gave error(frontend)
         //gave option for monthly or yearly goal
@@ -48,8 +48,17 @@ export class Goal {
             throw new ApiError(500, "Failed to create goal")
         }
     }
+    setTargetDate(){
+        const date = new Date()
+        if(this.frequency === "Yearly"){
+            this.duration *= 12
+        }
+        date.setMonth(date.getMonth() + this.duration)
+        this.targetDate = date.setHours(0,0,0,0)
+    }
     getDeadlineTime() {
         const now = new Date();
+        this.setTargetDate()
         const target = new Date(this.targetDate);
 
         const yearDiff = target.getFullYear() - now.getFullYear();
@@ -60,7 +69,7 @@ export class Goal {
     }
     autoDeductAmount(userId) {
         const deadline = this.getDeadlineTime()
-        const deductAmt = this.targetAmount / deadline.totalMonths
+        const deductAmt = this.targetAmount - this.goalBalance / deadline.totalMonths
 
         try {
             cron.schedule('0 0 * * *', async () => {
@@ -72,12 +81,11 @@ export class Goal {
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
                         if (goal.totalDeduction >= this.getDeadlineTime) {
-                            goal.targetAmount !== 0 ?
+                            this.targetAmount !== 0 ?
                                 goal.status = "UnAchieved" : goal.status = "Achieved"
                             await goal.save()
 
                         }
-
 
                         const user = await Users.findById(userId)
                         const income = user.income * 0.25
@@ -118,19 +126,19 @@ export class Goal {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const deadline = this.getDeadlineTime
+            const deadline = this.getDeadlineTime()
             const goals = await Goal.findById(goalId)
-            const lastMonth = goal.lastDeduction?.getMonth()
+            const lastMonth = goals.lastDeduction?.getMonth()
             const thisMonth = today.getMonth()
             if (lastMonth === thisMonth) continue;
 
-            if (goal.totalDeductions >= this.getDeadlineTime) {
+            if (goals.totalDeductions >= this.getDeadlineTime) {
                 goals.targetAmount == !0 ?
-                    goal.status = "UnAchieved" : goal.status = "Achieved"
+                    goals.status = "UnAchieved" : goals.status = "Achieved"
                 await goal.save()
                 return;
             }
-            const remainingAmount = this.targetAmount - goal.currentAmt
+            const remainingAmount = this.targetAmount - goals.currentAmt
             const deductAmount = remainingAmount / this.deadline
             const AllGoal = await Goal.find({ autoDeduction: false })
             if (!amount || amount > 0) {
@@ -139,15 +147,15 @@ export class Goal {
             const user = await Users.findById(userId)
             const income = user.income * 0.25
             if (user.netIncome <= income) {
-                goal.status = "Paused"
-                await goal.save()
+                goals.status = "Paused"
+                await goals.save()
                 return;
             }
-            goal.status = "InProgress"
-            goal.targetAmount -= deductAmount
-            goal.currentAmt += deductAmount
-            goal.lastDeduction = new Date()
-            goal.totalDeductions += 1
+            goals.status = "InProgress"
+            goals.targetAmount -= deductAmount
+            goals.currentAmt += deductAmount
+            goals.lastDeduction = new Date()
+            goals.totalDeductions += 1
             user.income -= deductAmount
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
@@ -161,7 +169,7 @@ export class Goal {
 
     }
 
-    async editGoal(goalID) {
+    async editGoal(goalId) {
         try {
             if (!goalID) {
                 throw new ApiError(400, "No goal id found")
@@ -199,7 +207,7 @@ export class Goal {
                 { new: true }
             )
             if (!updateGoal) return null
-            
+
             const user = await Users.findById(this.userId)
             user.netIncome -= updateGoal.currentAmt
             const updatedUserIncome = await user.save()

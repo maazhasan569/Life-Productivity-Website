@@ -19,6 +19,9 @@ const usersSchema = new mongoose.Schema({
     income: {
         type: Number,
     },
+    netIncome : {
+        type : Number
+    },
     currency: {
         type: String,
     },
