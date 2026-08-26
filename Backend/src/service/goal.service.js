@@ -4,13 +4,13 @@ import { Goal } from "../models/budget/goals.models";
 import { Users } from "../models/users.models";
 import ApiError from "../utils/ApiError";
 import cron from "node-cron"
-export class Goal {
+export class GoalService {
     constructor(userId, config = {}) {
         this.userId = this.userId;
         this.name = config.name || null;
         this.targetAmount = config.targetAmount || null;
         this.targetDate = config.targetDate || null;
-        this.frequency = config.frequency || 'Monthly'; // or 'yearly'
+        this.frequency = config.frequency // or 'yearly'
         this.category = config.category || null;
         this.duration = config.duration
         this.autoDeduction = config.autoDeduction
@@ -21,8 +21,8 @@ export class Goal {
         //make algorithm to suggest user goal deadline
 
     }
-    validiateGoal() {
-        const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency].some(() => {
+    validateGoal() {
+        const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency, this.duration].some(() => {
             return fields.some(field => {
                 if (typeof field === 'string') {
                     return !field || field.trim() === ""
@@ -37,6 +37,8 @@ export class Goal {
 
     }
     async createGoal() {
+
+        this.validateGoal()
         try {
             const newGoal = await Goal.createGoal({
                 userId: this.id,
@@ -47,8 +49,10 @@ export class Goal {
                 type: this.frequency,
                 duration,
                 autoDeduction: this.autoDeduction,
+                category: this.category
 
             })
+            return newGoal
         } catch (err) {
             throw new ApiError(500, "Failed to create goal")
         }
@@ -72,14 +76,11 @@ export class Goal {
         const totalMonths = yearDiff * 12 + monthDiff;
         return totalMonths
     }
-    autoDeductAmount(userId) {
-
-
-
+    async autoDeductAmount() {
         try {
             cron.schedule('0 0 * * *', async () => {
                 const today = new Date().getDate()
-                const autoDeductionGoals = await Goal.find({ autoDeduction: true })
+                const autoDeductionGoals = await Goal.find({ autoDeduction: true, userId: this.userId })
                 for (const goal of autoDeductionGoals) {
                     this.targetAmount = goal.targetAmount
                     this.goalBalance = goal.currentAmt
@@ -147,7 +148,7 @@ export class Goal {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const goal = await Goal.findById(goalId)
+            const goal = await Goal.find({ _id: goalId, userId: this.userId })
             this.targetAmount = goal.targetAmount
             this.goalBalance = goal.currentAmt
             this.duration = goal.duration
@@ -158,7 +159,7 @@ export class Goal {
             const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
             const lastMonth = goal.lastDeduction?.getMonth()
             const thisMonth = today.getMonth()
-            if (lastMonth === thisMonth) return;
+            if (lastMonth === thisMonth) throw new ApiError(400, "Goal monthly amt already paid")
             if (this.targetAmount === 0 && !deadline) {
                 deadlineInMonths = 0
             }
@@ -176,7 +177,7 @@ export class Goal {
             const user = await Users.findById(userId)
             const income = user.income * 0.25
             if (user.netIncome <= income) {
-                goals.status = "Paused"
+                goal.status = "Paused"
                 await goals.save()
                 return;
             }
@@ -205,13 +206,17 @@ export class Goal {
             if (!goalId) {
                 throw new ApiError(400, "No goal id found")
             }
-            this.validiateGoal()
+            this.validateGoal()
             const updatedGoal = await Goal.findByIdAndUpdate(
                 goalId,
                 {
                     goalName: this.name,
                     achievmentDate: this.targetDate,
                     targetAmount: this.targetAmount,
+                    autoDeduction: this.autoDeduction,
+                    type: this.frequency,
+                    duration: this.duration,
+                    category: this.category
                 },
                 { new: true }
             )
@@ -250,6 +255,26 @@ export class Goal {
 
         } catch (err) {
             throw new ApiError(500, err.message)
+        }
+    }
+    async AmtPaid(){
+        try{
+        const userGoals = await Goal.find({userId : this.userId})
+        if(!userGoals) return 0
+        const totalPaid = userGoals.reduce((sum,goal) => sum + goal.currentAmt , 0)
+        return 
+        }catch(err){
+            throw new ApiError(500 , err.msg)
+        }
+    }
+    async AmtRemaining(){
+       try{
+        const userGoals = await Goal.find({userId : this.userId})
+        if(!userGoals) return 0
+        const goalAmtRemaining = userGoals.reduce((sum,goal) => sum + goal.targetAmount , 0)
+        return goalAmtRemaining
+        }catch(err){
+            throw new ApiError(500 , err.msg)
         }
     }
 

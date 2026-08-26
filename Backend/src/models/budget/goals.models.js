@@ -39,7 +39,10 @@ const goalsSchema = new mongoose.Schema({
             message : "Only Monthly or Yearly goals are valid"
         }
     },
-
+    category : {
+        type : String,
+        default : "General"
+    },
     autoDeduction : {
         type : Boolean,
         default : false

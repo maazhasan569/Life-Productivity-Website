@@ -2,10 +2,32 @@ import { Goal } from "../../models/budget/goals.models";
 import ApiResponse from "../../utils/ApiResponse";
 import asyncHandler from "../../utils/asyncHandler";
 import { paginate } from "../../utils/pagination";
-import { Goal } from "../../service/goal.service";
+import { GoalService } from "../../service/goal.service";
 import ApiError from "../../utils/ApiError";
 
 
+
+
+
+const createGoal = asyncHandler(async (req, res) => {
+    const { name, targetAmount, targetDate, type, duration, category } = req.body
+    const userId = req.user._id
+    const goal = new GoalService(userId, {
+        name,
+        targetAmount,
+        targetDate,
+        type,
+        duration,
+        category,
+    })
+    const newGoal = await goal.createGoal()
+
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Goal created", newGoal)
+        )
+
+})
 const getGoalById = asyncHandler(async (req, res) => {
     const { goalId } = req.params
     const userId = req.user._id
@@ -60,12 +82,15 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
 })
 
 const editGoal = asyncHandler(async (req, res) => {
-    const { name, achievmentDate, targetAmount } = req.body
+    const { name, targetAmount, targetDate, type, duration, category } = req.body
     const { goalId } = req.params
-    const goal = new Goal(req.user, {
+    const goal = new GoalService(req.user, {
         name,
-        achievmentDate,
-        targetAmount
+        targetAmount,
+        targetDate,
+        type,
+        duration,
+        category,
     })
     const updateGoal = await goal.editGoal(goalId)
     if (!updateGoal) {
@@ -81,7 +106,7 @@ const editGoal = asyncHandler(async (req, res) => {
 const delGoal = asyncHandler(async (req, res) => {
     const userId = req.user._id
     const { goalId } = req.body
-    const goal = new Goal(userId)
+    const goal = new GoalService(userId)
     const del = await goal.deleteGoal(goalId)
 
     if (!del) {
@@ -98,10 +123,48 @@ const delGoal = asyncHandler(async (req, res) => {
 
 const autoDeductAmt = asyncHandler(async (req, res) => {
     //fetch user goal
+    const userId = req.user._id
+    const goal = new GoalService(userId)
+    const deductAmtData = await goal.autoDeductAmount()
+
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Goal amt deducted. Goal andUser updated", deductAmtData)
+        )
+
 })
 const manualDeduction = asyncHandler(async (req, res) => {
 
+    const { goalId } = req.params
+    const { amount } = req.body
+    const userId = req.user._id
+
+    const goal = new GoalService(userId)
+    const deductAmtData = await goal.manualDeduction(amount, goalId)
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Goal amt deducted. Goal andUser updated", deductAmtData)
+        )
+
 })
-const totalGoalsAmt = asyncHandler(async(req,res) => {
-    
+const totalGoalsAmtPaid = asyncHandler(async (req, res) => {
+    const userId = req.user._id
+
+    const goal = new GoalService(userId)
+    const amtPaidData = await goal.AmtPaid()
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "fetched money spend on goals" , amtPaidData)
+    )
+})
+const totalGoalsAmtRemaining = asyncHandler(async(req,res) => {
+
+    const userId = req.user._id
+
+    const goal = new GoalService(userId)
+    const goalsDueAmt = await goal.AmtRemaining()
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "fetched money due on goals" , goalsDueAmt)
+    )
 })
