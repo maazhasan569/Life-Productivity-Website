@@ -10,7 +10,7 @@ export class Goal {
         this.name = config.name || null;
         this.targetAmount = config.targetAmount || null;
         this.targetDate = config.targetDate || null;
-        this.frequency = config.frequency || 'monthly'; // or 'yearly'
+        this.frequency = config.frequency || 'Monthly'; // or 'yearly'
         this.category = config.category || null;
         this.duration = config.duration
         this.autoDeduction = config.autoDeduction
@@ -42,23 +42,28 @@ export class Goal {
                 userId: this.id,
                 goalName: this.goalName,
                 achievementDate: this.targetDate,
-                targetAmount: this.targetAmount
+                targetAmount: this.targetAmount,
+                status: "InProgress",
+                type: this.frequency,
+                duration,
+                autoDeduction: this.autoDeduction,
+
             })
         } catch (err) {
             throw new ApiError(500, "Failed to create goal")
         }
     }
-    setTargetDate() {
+    setTargetDate(duration, frequency) {
         const date = new Date()
-        if (this.frequency === "Yearly") {
-            this.duration *= 12
+        if (frequency === "Yearly") {
+            this.duration = duration * 12
         }
         date.setMonth(date.getMonth() + this.duration)
         this.targetDate = date.setHours(0, 0, 0, 0)
     }
-    getDeadlineTime() {
+    getDeadlineTime(duration, frequency) {
         const now = new Date();
-        this.setTargetDate()
+        this.setTargetDate(duration, frequency)
         const target = new Date(this.targetDate);
 
         const yearDiff = target.getFullYear() - now.getFullYear();
@@ -68,20 +73,27 @@ export class Goal {
         return totalMonths
     }
     autoDeductAmount(userId) {
-        const deadline = this.getDeadlineTime()
-        this.targetAmount -= this.goalBalance
-        const deductAmt = this.targetAmount / deadline.totalMonths
+
+
 
         try {
             cron.schedule('0 0 * * *', async () => {
                 const today = new Date().getDate()
                 const autoDeductionGoals = await Goal.find({ autoDeduction: true })
                 for (const goal of autoDeductionGoals) {
+                    this.targetAmount = goal.targetAmount
+                    this.goalBalance = goal.currentAmt
+                    this.duration = goal.duration
+                    this.autoDeduction = goal.autoDeduction
+                    this.frequency = goal.type
+                    this.category = goal.category
+                    this.name = goal.name
+
                     if (today.getDate() === goal.deductionDay.getDate()) {
                         const lastMonth = goal.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
-                        if (goal.totalDeduction >= this.getDeadlineTime) {
+                        if (goal.totalDeduction >= this.duration) {
                             this.targetAmount !== 0 ?
                                 goal.status = "UnAchieved" : goal.status = "Achieved"
                             await goal.save()
@@ -95,12 +107,16 @@ export class Goal {
                             await goal.save()
                             continue;
                         }
-                        this.goalBalance = deductAmt
-                        this.targetAmount -= deductAmt
-                        
+
+
+                        const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+                        const deductAmt = this.targetAmount - this.goalBalance / deadlineInMonths
+                        this.goalBalance += deductAmt
+                        this.targetAmount -= this.goalBalance
+
                         goal.status = "InProgress"
-                        goal.currentAmt += deductAmt
-                        goal.targetAmount -= deductAmt
+                        goal.currentAmt = this.goalBalance
+                        goal.targetAmount = this.targetAmount
                         user.netIncome -= deductAmt
                         goal.lastDeduction = new Date()
                         goal.totalDeductions += 1
@@ -131,21 +147,29 @@ export class Goal {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const deadline = this.getDeadlineTime()
-            const goals = await Goal.findById(goalId)
-            const lastMonth = goals.lastDeduction?.getMonth()
+            const goal = await Goal.findById(goalId)
+            this.targetAmount = goal.targetAmount
+            this.goalBalance = goal.currentAmt
+            this.duration = goal.duration
+            this.autoDeduction = goal.autoDeduction
+            this.frequency = goal.type
+            this.category = goal.category
+            this.name = goal.name
+            const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+            const lastMonth = goal.lastDeduction?.getMonth()
             const thisMonth = today.getMonth()
-            if (lastMonth === thisMonth) continue;
-
-            if (goals.totalDeductions >= deadline) {
+            if (lastMonth === thisMonth) return;
+            if (this.targetAmount === 0 && !deadline) {
+                deadlineInMonths = 0
+            }
+            if (goal.totalDeductions >= deadlineInMonths) {
                 this.targetAmount == !0 ?
-                    goals.status = "UnAchieved" : goals.status = "Achieved"
-                await goals.save()
+                    goal.status = "UnAchieved" : goal.status = "Achieved"
+                await goal.save()
                 return;
             }
-             this.targetAmount -= this.goalBalance
-            const deductAmount = this.targetAmount / this.deadline
-            const AllGoal = await Goal.find({ autoDeduction: false })
+
+
             if (!amount || amount > 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
@@ -156,15 +180,14 @@ export class Goal {
                 await goals.save()
                 return;
             }
-            this.targetAmount -= deductAmount
-            this.goalBalance += deductAmount
-
-            goals.status = "InProgress"
-            goals.targetAmount -= deductAmount
-            goals.currentAmt += deductAmount
-            goals.lastDeduction = new Date()
-            goals.totalDeductions += 1
-            user.income -= deductAmount
+            this.goalBalance += amount
+            this.targetAmount -= this.goalBalance
+            goal.status = "InProgress"
+            goal.targetAmount = this.targetAmount
+            goal.currentAmt = this.goalBalance
+            goal.lastDeduction = new Date()
+            goal.totalDeductions += 1
+            user.income -= amount
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 

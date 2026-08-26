@@ -97,7 +97,7 @@ const delGoal = asyncHandler(async (req, res) => {
 })
 
 const autoDeductAmt = asyncHandler(async (req, res) => {
-
+    //fetch user goal
 })
 const manualDeduction = asyncHandler(async (req, res) => {
 

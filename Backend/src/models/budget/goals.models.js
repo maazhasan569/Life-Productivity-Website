@@ -21,7 +21,8 @@ const goalsSchema = new mongoose.Schema({
     },
     currentAmt : {
         type : Number,
-        required : true
+        required : true,
+        default : 0
     },
     status : {
         type : String,
