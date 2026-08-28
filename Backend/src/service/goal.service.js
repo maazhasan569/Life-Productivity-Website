@@ -7,23 +7,23 @@ import cron from "node-cron"
 export class GoalService {
     constructor(userId, config = {}) {
         this.userId = userId;
-        this.name = config.name 
-        this.targetAmount = config.targetAmount 
+        this.name = config.name
+        this.targetAmount = config.targetAmount
         this.targetDate = null
-        this.frequency = config.frequency 
-        this.category = config.category 
+        this.frequency = config.frequency
+        this.category = config.category
         this.duration = config.duration
-        this.autoDeduction = config.autoDeduction 
+        this.autoDeduction = config.autoDeduction
         this.goalBalance = 0
     }
     validateGoal() {
-        const fieldCheck = [this.name, this.targetAmount, this.frequency, this.duration ]
-        .some((field) => {
-            if (typeof field === 'string') {
-                return !field || field.trim() === ""
-            }
-            return !field
-        })
+        const fieldCheck = [this.name, this.targetAmount, this.frequency, this.duration]
+            .some((field) => {
+                if (typeof field === 'string') {
+                    return !field || field.trim() === ""
+                }
+                return !field
+            })
 
         if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
@@ -42,7 +42,7 @@ export class GoalService {
                 targetAmount: this.targetAmount,
                 status: "InProgress",
                 type: this.frequency,
-                duration : this.duration,
+                duration: this.duration,
                 autoDeduction: this.autoDeduction,
                 category: this.category
 
@@ -222,7 +222,7 @@ export class GoalService {
         }
     }
     async deleteGoal(goalId) {
-        
+        console.log(goalId)
         if (!goalId) {
             throw new ApiError(400, "No goal id found")
         }
@@ -231,25 +231,30 @@ export class GoalService {
             //add goal balance to income
             //delete the goal 
             //add the deleted goal to history
-
-            const updateGoal = await Goal.findByIdAndUpdate(
-                goalId,
+            const updateGoal = await Goal.findOneAndUpdate(
+                { _id: goalId },
                 {
-                    status: "Abondened"
+                    $set: { status: "Abandoned" } // Fixed spelling and added $set
                 },
-                { new: true }
-            )
+                { returnDocument: 'after' }
+            );
+            console.log(updateGoal)
             if (!updateGoal) return null
-
             const user = await Users.findById(this.userId)
             console.log(user.netIncome)
             user.netIncome -= updateGoal.currentAmt
-            const updatedUserIncome = await user.save()
-            const deleteGoal = await Goal.findByIdAndDelete(goalId)
-            const history = await History.find({ userId: this.id })
-            history.goals = deleteGoal
-            const updateGoalHistory = await history.save()
-            return {updatedUserIncome , deleteGoal , updateGoalHistory}
+            const updatedUser = await user.save()
+            const deletedGoal = await Goal.findByIdAndDelete(goalId)
+            const isHistoryCreated = await History.findOne({ userId: this.userId })
+            const history = isHistoryCreated ? isHistoryCreated.goals = [...isHistoryCreated.goals, deletedGoal]
+                : await History.create({
+                    goals: [deletedGoal],
+                    userId : this.userId
+                })
+            if (isHistoryCreated) await isHistoryCreated.save()
+            const updatedUserNetIncome = updatedUser.netIncome
+            
+            return { updatedUserNetIncome, deletedGoal, history}
 
 
         } catch (err) {
