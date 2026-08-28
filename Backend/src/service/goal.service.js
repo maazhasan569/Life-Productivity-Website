@@ -1,8 +1,7 @@
 
-import { Expense } from "../models/budget/expense.models";
-import { Goal } from "../models/budget/goals.models";
-import { Users } from "../models/users.models";
-import ApiError from "../utils/ApiError";
+import { Goal } from "../models/budget/goals.models.js";
+import { Users } from "../models/users.models.js";
+import ApiError from "../utils/ApiError.js";
 import cron from "node-cron"
 export class GoalService {
     constructor(userId, config = {}) {

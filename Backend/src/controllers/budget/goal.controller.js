@@ -1,9 +1,9 @@
-import { Goal } from "../../models/budget/goals.models";
-import ApiResponse from "../../utils/ApiResponse";
-import asyncHandler from "../../utils/asyncHandler";
-import { paginate } from "../../utils/pagination";
-import { GoalService } from "../../service/goal.service";
-import ApiError from "../../utils/ApiError";
+import { Goal } from "../../models/budget/goals.models.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import { paginate } from "../../utils/pagination.js";
+import { GoalService } from "../../service/goal.service.js";
+import ApiError from "../../utils/ApiError.js";
 
 
 
@@ -169,6 +169,14 @@ const totalGoalsAmtRemaining = asyncHandler(async(req,res) => {
     )
 })
 
-export default {
-    
+export  {
+    createGoal,
+    getAllGoals,
+    getGoalById,
+    getGoalsByCategory,
+    delGoal,
+    autoDeductAmt,
+    manualDeduction,
+    totalGoalsAmtPaid,
+    totalGoalsAmtRemaining,
 }
