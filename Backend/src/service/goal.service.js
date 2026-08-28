@@ -2,6 +2,7 @@
 import { Goal } from "../models/budget/goals.models.js";
 import { Users } from "../models/users.models.js";
 import ApiError from "../utils/ApiError.js";
+import { History } from "../models/history.models.js";
 import cron from "node-cron"
 export class GoalService {
     constructor(userId, config = {}) {
@@ -221,7 +222,8 @@ export class GoalService {
         }
     }
     async deleteGoal(goalId) {
-        if (goalId) {
+        
+        if (!goalId) {
             throw new ApiError(400, "No goal id found")
         }
         try {
@@ -240,12 +242,14 @@ export class GoalService {
             if (!updateGoal) return null
 
             const user = await Users.findById(this.userId)
+            console.log(user.netIncome)
             user.netIncome -= updateGoal.currentAmt
             const updatedUserIncome = await user.save()
             const deleteGoal = await Goal.findByIdAndDelete(goalId)
-            const updateGoalHistory = await History.find({ userId: this.id })
-
-            return {}
+            const history = await History.find({ userId: this.id })
+            history.goals = deleteGoal
+            const updateGoalHistory = await history.save()
+            return {updatedUserIncome , deleteGoal , updateGoalHistory}
 
 
         } catch (err) {

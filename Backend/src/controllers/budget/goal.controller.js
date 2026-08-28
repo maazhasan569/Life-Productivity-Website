@@ -105,14 +105,12 @@ const editGoal = asyncHandler(async (req, res) => {
 
 const delGoal = asyncHandler(async (req, res) => {
     const userId = req.user._id
-    const { goalId } = req.body
+    const { goalId } = req.params
     const goal = new GoalService(userId)
     const del = await goal.deleteGoal(goalId)
 
     if (!del) {
-        return res.status(404).json(
-            new ApiResponse(404, del, "Goal not found")
-        );
+       throw new ApiError(404 , "Goal not found")
     }
 
     return res.status(200)
