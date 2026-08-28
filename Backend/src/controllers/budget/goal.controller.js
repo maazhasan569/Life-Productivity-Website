@@ -168,3 +168,7 @@ const totalGoalsAmtRemaining = asyncHandler(async(req,res) => {
         new ApiResponse(200 , "fetched money due on goals" , goalsDueAmt)
     )
 })
+
+export default {
+    
+}
