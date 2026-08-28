@@ -11,7 +11,7 @@ const goalsSchema = new mongoose.Schema({
         required : true,
 
     },
-    achievmentDate : {
+    achievementDate : {
         type : Date,
         required : true
     },
@@ -21,12 +21,12 @@ const goalsSchema = new mongoose.Schema({
     },
     currentAmt : {
         type : Number,
-        required : true,
         default : 0
     },
     status : {
         type : String,
-        default : "Working",
+        required : true,
+        default : "InProgress",
         enum : {
             values : ["InProgress" , "Paused", "Abondened" , "Achieved"],
             message : "InProgress , Paused , Abondened , Achieved are acceptable"
@@ -34,6 +34,7 @@ const goalsSchema = new mongoose.Schema({
     },
     type : {
         type : String,
+        required : true,
         enum : {
             values : ["Monthly" , "Yearly"],
             message : "Only Monthly or Yearly goals are valid"

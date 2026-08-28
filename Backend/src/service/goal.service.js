@@ -8,12 +8,12 @@ export class GoalService {
         this.userId = userId;
         this.name = config.name 
         this.targetAmount = config.targetAmount 
-        this.targetDate = config.targetDate 
+        this.targetDate = null
         this.frequency = config.frequency 
-        this.category = config.category || null;
+        this.category = config.category 
         this.duration = config.duration
         this.autoDeduction = config.autoDeduction 
-        this.goalBalance = config.goalBalance || 0
+        this.goalBalance = 0
     }
     validateGoal() {
         const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency, this.duration ]
@@ -31,14 +31,12 @@ export class GoalService {
 
     }
     async createGoal() {
-
         this.setTargetDate(this.duration, this.frequency)
-        console.log(this.targetDate)
         this.validateGoal()
         try {
             const newGoal = await Goal.create({
-                userId: this.id,
-                goalName: this.goalName,
+                userId: this.userId,
+                goalName: this.name,
                 achievementDate: this.targetDate,
                 targetAmount: this.targetAmount,
                 status: "InProgress",
@@ -50,7 +48,7 @@ export class GoalService {
             })
             return newGoal
         } catch (err) {
-            throw new ApiError(500, "Failed to create goal")
+            throw new ApiError(500, err)
         }
     }
     setTargetDate(duration, frequency) {

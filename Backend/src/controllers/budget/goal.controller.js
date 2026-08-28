@@ -15,10 +15,8 @@ const createGoal = asyncHandler(async (req, res) => {
     const goal = new GoalService(userId, {
         name,
         targetAmount,
-        targetDate : null,
         autoDeduction,
         frequency : type,
-        goalBalance : 0,
         duration,
         category,
     })
