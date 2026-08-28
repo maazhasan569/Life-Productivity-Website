@@ -5,31 +5,26 @@ import ApiError from "../utils/ApiError.js";
 import cron from "node-cron"
 export class GoalService {
     constructor(userId, config = {}) {
-        this.userId = this.userId;
-        this.name = config.name || null;
-        this.targetAmount = config.targetAmount || null;
-        this.targetDate = config.targetDate || null;
-        this.frequency = config.frequency // or 'yearly'
+        this.userId = userId;
+        this.name = config.name 
+        this.targetAmount = config.targetAmount 
+        this.targetDate = config.targetDate 
+        this.frequency = config.frequency 
         this.category = config.category || null;
         this.duration = config.duration
-        this.autoDeduction = config.autoDeduction
-        this.goalBalance = goalBalance
-        //user will enter goal name,and amt
-        //if goal exceed an x amt of bankbalance gave error(frontend)
-        //gave option for monthly or yearly goal
-        //make algorithm to suggest user goal deadline
-
+        this.autoDeduction = config.autoDeduction 
+        this.goalBalance = config.goalBalance || 0
     }
     validateGoal() {
-        const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency, this.duration].some(() => {
-            return fields.some(field => {
-                if (typeof field === 'string') {
-                    return !field || field.trim() === ""
-                }
-                return !field
-            })
+        const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency, this.duration ]
+        .some((field) => {
+            if (typeof field === 'string') {
+                return !field || field.trim() === ""
+            }
+            return !field
         })
-        if (!fieldCheck) {
+
+        if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
         }
 
@@ -37,16 +32,18 @@ export class GoalService {
     }
     async createGoal() {
 
+        this.setTargetDate(this.duration, this.frequency)
+        console.log(this.targetDate)
         this.validateGoal()
         try {
-            const newGoal = await Goal.createGoal({
+            const newGoal = await Goal.create({
                 userId: this.id,
                 goalName: this.goalName,
                 achievementDate: this.targetDate,
                 targetAmount: this.targetAmount,
                 status: "InProgress",
                 type: this.frequency,
-                duration,
+                duration : this.duration,
                 autoDeduction: this.autoDeduction,
                 category: this.category
 
@@ -62,7 +59,8 @@ export class GoalService {
             this.duration = duration * 12
         }
         date.setMonth(date.getMonth() + this.duration)
-        this.targetDate = date.setHours(0, 0, 0, 0)
+        date.setHours(0, 0, 0, 0)
+        this.targetDate = date
     }
     getDeadlineTime(duration, frequency) {
         const now = new Date();
@@ -256,24 +254,24 @@ export class GoalService {
             throw new ApiError(500, err.message)
         }
     }
-    async AmtPaid(){
-        try{
-        const userGoals = await Goal.find({userId : this.userId})
-        if(!userGoals) return 0
-        const totalPaid = userGoals.reduce((sum,goal) => sum + goal.currentAmt , 0)
-        return 
-        }catch(err){
-            throw new ApiError(500 , err.msg)
+    async AmtPaid() {
+        try {
+            const userGoals = await Goal.find({ userId: this.userId })
+            if (!userGoals) return 0
+            const totalPaid = userGoals.reduce((sum, goal) => sum + goal.currentAmt, 0)
+            return
+        } catch (err) {
+            throw new ApiError(500, err.msg)
         }
     }
-    async AmtRemaining(){
-       try{
-        const userGoals = await Goal.find({userId : this.userId})
-        if(!userGoals) return 0
-        const goalAmtRemaining = userGoals.reduce((sum,goal) => sum + goal.targetAmount , 0)
-        return goalAmtRemaining
-        }catch(err){
-            throw new ApiError(500 , err.msg)
+    async AmtRemaining() {
+        try {
+            const userGoals = await Goal.find({ userId: this.userId })
+            if (!userGoals) return 0
+            const goalAmtRemaining = userGoals.reduce((sum, goal) => sum + goal.targetAmount, 0)
+            return goalAmtRemaining
+        } catch (err) {
+            throw new ApiError(500, err.msg)
         }
     }
 

@@ -10,13 +10,15 @@ import ApiError from "../../utils/ApiError.js";
 
 
 const createGoal = asyncHandler(async (req, res) => {
-    const { name, targetAmount, targetDate, type, duration, category } = req.body
+    const { name, targetAmount,  type, duration, category , autoDeduction } = req.body
     const userId = req.user._id
     const goal = new GoalService(userId, {
         name,
         targetAmount,
-        targetDate,
-        type,
+        targetDate : null,
+        autoDeduction,
+        frequency : type,
+        goalBalance : 0,
         duration,
         category,
     })
@@ -34,7 +36,7 @@ const getGoalById = asyncHandler(async (req, res) => {
     const getGoal = await Goal.findOne({ goalId, userId })
     res.status(200)
         .json(
-            new ApiResponse(200, getGoal ? "Goal fetched" : "Goal not found by Id", getGoal ? getGoal : {})
+            new ApiResponse(200, getGoal ? "Goal fetched" : "Goal not found by Id", getGoal)
         )
 
 })
