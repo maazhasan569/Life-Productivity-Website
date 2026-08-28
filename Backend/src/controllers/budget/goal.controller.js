@@ -82,15 +82,15 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
 })
 
 const editGoal = asyncHandler(async (req, res) => {
-    const { name, targetAmount, targetDate, type, duration, category } = req.body
+    const { name, targetAmount, type, duration, category , autoDeduction} = req.body
     const { goalId } = req.params
     const goal = new GoalService(req.user, {
         name,
         targetAmount,
-        targetDate,
-        type,
+        frequency : type,
         duration,
         category,
+        autoDeduction
     })
     const updateGoal = await goal.editGoal(goalId)
     if (!updateGoal) {
@@ -179,4 +179,5 @@ export  {
     manualDeduction,
     totalGoalsAmtPaid,
     totalGoalsAmtRemaining,
+    editGoal,
 }

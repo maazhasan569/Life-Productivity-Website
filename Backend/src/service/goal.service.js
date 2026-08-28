@@ -16,7 +16,7 @@ export class GoalService {
         this.goalBalance = 0
     }
     validateGoal() {
-        const fieldCheck = [this.name, this.targetAmount, this.targetDate, this.frequency, this.duration ]
+        const fieldCheck = [this.name, this.targetAmount, this.frequency, this.duration ]
         .some((field) => {
             if (typeof field === 'string') {
                 return !field || field.trim() === ""

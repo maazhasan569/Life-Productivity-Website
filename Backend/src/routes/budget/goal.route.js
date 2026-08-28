@@ -9,6 +9,7 @@ import {
     manualDeduction,
     totalGoalsAmtPaid,
     totalGoalsAmtRemaining,
+    editGoal
 } from "../../controllers/budget/goal.controller.js";
 import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware.js";
 
@@ -23,5 +24,5 @@ router.route("/auto-deduct").post(verfiyJWTAccessToken,autoDeductAmt)
 router.route("/manual-deduct").post(verfiyJWTAccessToken,manualDeduction)
 router.route("/amt-paid").get(verfiyJWTAccessToken,totalGoalsAmtPaid)
 router.route("/amt-remaining").get(verfiyJWTAccessToken,totalGoalsAmtRemaining)
-
+router.route("/:goalId").put(verfiyJWTAccessToken,editGoal)
 export default router
