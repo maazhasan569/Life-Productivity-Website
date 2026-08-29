@@ -134,6 +134,7 @@ const autoDeductAmt = asyncHandler(async (req, res) => {
 const manualDeduction = asyncHandler(async (req, res) => {
 
     const { goalId } = req.params
+    
     const { amount } = req.body
     const userId = req.user._id
 

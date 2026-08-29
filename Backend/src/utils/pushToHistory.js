@@ -1,5 +1,5 @@
 import { History } from "../models/history.models.js";
-const delAndPushToHistory = async (userId, delItmId, field) => {
+const pushToHistory = async (userId, delItmId, field) => {
     console.log("2")
     const isUserHistory = await History.findOne({ userId, })
     const history = isUserHistory
@@ -10,4 +10,4 @@ const delAndPushToHistory = async (userId, delItmId, field) => {
     return history;
 
 }
-export default delAndPushToHistory
+export default pushToHistory

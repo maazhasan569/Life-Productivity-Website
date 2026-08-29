@@ -3,7 +3,7 @@ import { Goal } from "../models/budget/goals.models.js";
 import { Users } from "../models/users.models.js";
 import ApiError from "../utils/ApiError.js";
 import cron from "node-cron"
-import delAndPushToHistory from "../utils/isHistoryCreated.js";
+import pushToHistory from "../utils/pushToHistory.js";
 export class GoalService {
     constructor(userId, config = {}) {
         this.userId = userId;
@@ -95,7 +95,7 @@ export class GoalService {
                             goal.status = "UnAchieved" : goal.status = "Achieved"      
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
-                            await delAndPushToHistory(this.userId, delGoal._id , "goals")
+                            await pushToHistory(this.userId, delGoal._id , "goals")
 
                         }
 
@@ -156,7 +156,7 @@ export class GoalService {
             this.name = goal.name
             const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
             const lastMonth = goal.lastDeduction?.getMonth()
-            const thisMonth = newDate().getMonth()
+            const thisMonth = new Date().getMonth()
             if (lastMonth === thisMonth) throw new ApiError(400, "Goal monthly amt already paid")
             if (this.targetAmount === 0 && !deadlineInMonths) {
                 deadlineInMonths = 0
@@ -166,7 +166,7 @@ export class GoalService {
                     goal.status = "UnAchieved" : goal.status = "Achieved"
                 await goal.save()
                 const delGoal = await Goal.findByIdAndDelete(goal._id)
-                await delAndPushToHistory(this.userId, delGoal._Id , "goals")
+                await pushToHistory(this.userId, delGoal._id , "goals")
                 return;
             }
 
@@ -246,9 +246,7 @@ export class GoalService {
             user.netIncome += updateGoal.currentAmt
             const updatedUser = await user.save()
             const deletedGoal = await Goal.findByIdAndDelete(goalId)
-            console.log("1")
-            const history = await delAndPushToHistory(this.userId , deletedGoal._id ,"goals")
-            console.log("3")
+            const history = await pushToHistory(this.userId , deletedGoal._id ,"goals")
             const updatedUserNetIncome = updatedUser.netIncome
             return { updatedUserNetIncome, deletedGoal, history}
 
