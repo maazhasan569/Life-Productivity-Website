@@ -2,8 +2,8 @@
 import { Goal } from "../models/budget/goals.models.js";
 import { Users } from "../models/users.models.js";
 import ApiError from "../utils/ApiError.js";
-import { History } from "../models/history.models.js";
 import cron from "node-cron"
+import delAndPushToHistory from "../utils/isHistoryCreated.js";
 export class GoalService {
     constructor(userId, config = {}) {
         this.userId = userId;
@@ -90,10 +90,11 @@ export class GoalService {
                         const lastMonth = goal.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
-                        if (goal.totalDeduction >= this.duration) {
+                        if (goal.totalDeductions >= this.duration) {
                             this.targetAmount !== 0 ?
                                 goal.status = "UnAchieved" : goal.status = "Achieved"
                             await goal.save()
+
 
                         }
 
@@ -174,7 +175,7 @@ export class GoalService {
             const income = user.income * 0.25
             if (user.netIncome <= income) {
                 goal.status = "Paused"
-                await goals.save()
+                await goal.save()
                 return;
             }
             this.goalBalance += amount
@@ -222,7 +223,6 @@ export class GoalService {
         }
     }
     async deleteGoal(goalId) {
-        console.log(goalId)
         if (!goalId) {
             throw new ApiError(400, "No goal id found")
         }
@@ -238,22 +238,15 @@ export class GoalService {
                 },
                 { returnDocument: 'after' }
             );
-            console.log(updateGoal)
             if (!updateGoal) return null
             const user = await Users.findById(this.userId)
-            console.log(user.netIncome)
-            user.netIncome -= updateGoal.currentAmt
+            user.netIncome += updateGoal.currentAmt
             const updatedUser = await user.save()
             const deletedGoal = await Goal.findByIdAndDelete(goalId)
-            const isHistoryCreated = await History.findOne({ userId: this.userId })
-            const history = isHistoryCreated ? isHistoryCreated.goals = [...isHistoryCreated.goals,deletedGoal._id]
-                : await History.create({
-                    goals: [deletedGoal],
-                    userId : this.userId
-                })
-            if (isHistoryCreated) await isHistoryCreated.save()
+            console.log("1")
+            const history = await delAndPushToHistory(this.userId , deletedGoal._id ,"goals")
+            console.log("3")
             const updatedUserNetIncome = updatedUser.netIncome
-            
             return { updatedUserNetIncome, deletedGoal, history}
 
 
@@ -264,7 +257,6 @@ export class GoalService {
     async AmtPaid() {
         try {
             const userGoals = await Goal.find({ userId: this.userId })
-            console.log(userGoals)
             if (!userGoals) return 0
             const totalPaid = userGoals.reduce((sum, goal) => sum + goal.currentAmt, 0)
             return totalPaid
