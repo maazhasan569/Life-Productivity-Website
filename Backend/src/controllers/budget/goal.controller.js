@@ -147,7 +147,6 @@ const manualDeduction = asyncHandler(async (req, res) => {
 })
 const totalGoalsAmtPaid = asyncHandler(async (req, res) => {
     const userId = req.user._id
-
     const goal = new GoalService(userId)
     const amtPaidData = await goal.AmtPaid()
     return res.status(200)

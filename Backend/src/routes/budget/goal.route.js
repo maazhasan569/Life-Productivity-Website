@@ -15,14 +15,17 @@ import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware.js"
 
 
 const router = Router()
-router.route("/create-goal").post(verfiyJWTAccessToken,createGoal)
-router.route("/:id").get(verfiyJWTAccessToken,getGoalById)
-router.route("/").get(verfiyJWTAccessToken,getAllGoals)
-router.route("/category").get(verfiyJWTAccessToken,getGoalsByCategory)
-router.route("/:goalId").delete(verfiyJWTAccessToken,delGoal)
-router.route("/auto-deduct").post(verfiyJWTAccessToken,autoDeductAmt)
-router.route("/manual-deduct").post(verfiyJWTAccessToken,manualDeduction)
-router.route("/amt-paid").get(verfiyJWTAccessToken,totalGoalsAmtPaid)
-router.route("/amt-remaining").get(verfiyJWTAccessToken,totalGoalsAmtRemaining)
-router.route("/:goalId").put(verfiyJWTAccessToken,editGoal)
+router.route("/create-goal").post(verfiyJWTAccessToken, createGoal)
+router.route("/category").get(verfiyJWTAccessToken, getGoalsByCategory)
+router.route("/auto-deduct").post(verfiyJWTAccessToken, autoDeductAmt)
+router.route("/manual-deduct").post(verfiyJWTAccessToken, manualDeduction)
+router.route("/amt-paid").get(verfiyJWTAccessToken, totalGoalsAmtPaid)
+router.route("/amt-remaining").get(verfiyJWTAccessToken, totalGoalsAmtRemaining)
+
+
+router.route("/").get(verfiyJWTAccessToken, getAllGoals)
+router.route("/:goalId").get(verfiyJWTAccessToken, getGoalById)
+router.route("/:goalId").delete(verfiyJWTAccessToken, delGoal)
+router.route("/:goalId").put(verfiyJWTAccessToken, editGoal)
+
 export default router

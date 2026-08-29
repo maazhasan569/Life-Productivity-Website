@@ -246,7 +246,7 @@ export class GoalService {
             const updatedUser = await user.save()
             const deletedGoal = await Goal.findByIdAndDelete(goalId)
             const isHistoryCreated = await History.findOne({ userId: this.userId })
-            const history = isHistoryCreated ? isHistoryCreated.goals = [...isHistoryCreated.goals, deletedGoal]
+            const history = isHistoryCreated ? isHistoryCreated.goals = [...isHistoryCreated.goals,deletedGoal._id]
                 : await History.create({
                     goals: [deletedGoal],
                     userId : this.userId
@@ -264,11 +264,12 @@ export class GoalService {
     async AmtPaid() {
         try {
             const userGoals = await Goal.find({ userId: this.userId })
+            console.log(userGoals)
             if (!userGoals) return 0
             const totalPaid = userGoals.reduce((sum, goal) => sum + goal.currentAmt, 0)
-            return
+            return totalPaid
         } catch (err) {
-            throw new ApiError(500, err.msg)
+            throw new ApiError(500, err.message)
         }
     }
     async AmtRemaining() {
