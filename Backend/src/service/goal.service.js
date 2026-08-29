@@ -92,13 +92,14 @@ export class GoalService {
                         if (lastMonth === thisMonth) continue;
                         if (goal.totalDeductions >= this.duration) {
                             this.targetAmount !== 0 ?
-                                goal.status = "UnAchieved" : goal.status = "Achieved"
+                            goal.status = "UnAchieved" : goal.status = "Achieved"      
                             await goal.save()
-
+                            const delGoal = await Goal.findByIdAndDelete(goal._id)
+                            await delAndPushToHistory(this.userId, delGoal._id , "goals")
 
                         }
 
-                        const user = await Users.findById(userId)
+                        const user = await Users.findById(this.userId)
                         const income = user.income * 0.25
                         if (user.netIncome <= income) {
                             goal.status = "Paused"
@@ -108,9 +109,9 @@ export class GoalService {
 
 
                         const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
-                        const deductAmt = this.targetAmount - this.goalBalance / deadlineInMonths
+                        const deductAmt = (this.targetAmount - this.goalBalance) / deadlineInMonths
                         this.goalBalance += deductAmt
-                        this.targetAmount -= this.goalBalance
+                        this.targetAmount -= deductAmt
 
                         goal.status = "InProgress"
                         goal.currentAmt = this.goalBalance
@@ -145,7 +146,7 @@ export class GoalService {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const goal = await Goal.find({ _id: goalId, userId: this.userId })
+            const goal = await Goal.findOne({ _id: goalId, userId: this.userId })
             this.targetAmount = goal.targetAmount
             this.goalBalance = goal.currentAmt
             this.duration = goal.duration
@@ -155,23 +156,25 @@ export class GoalService {
             this.name = goal.name
             const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
             const lastMonth = goal.lastDeduction?.getMonth()
-            const thisMonth = today.getMonth()
+            const thisMonth = newDate().getMonth()
             if (lastMonth === thisMonth) throw new ApiError(400, "Goal monthly amt already paid")
-            if (this.targetAmount === 0 && !deadline) {
+            if (this.targetAmount === 0 && !deadlineInMonths) {
                 deadlineInMonths = 0
             }
             if (goal.totalDeductions >= deadlineInMonths) {
-                this.targetAmount == !0 ?
+                this.targetAmount !== 0 ?
                     goal.status = "UnAchieved" : goal.status = "Achieved"
                 await goal.save()
+                const delGoal = await Goal.findByIdAndDelete(goal._id)
+                await delAndPushToHistory(this.userId, delGoal._Id , "goals")
                 return;
             }
 
 
-            if (!amount || amount > 0) {
+            if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
-            const user = await Users.findById(userId)
+            const user = await Users.findById(this.userId)
             const income = user.income * 0.25
             if (user.netIncome <= income) {
                 goal.status = "Paused"
@@ -179,13 +182,13 @@ export class GoalService {
                 return;
             }
             this.goalBalance += amount
-            this.targetAmount -= this.goalBalance
+            this.targetAmount -= amount
             goal.status = "InProgress"
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
             goal.totalDeductions += 1
-            user.income -= amount
+            user.netIncome -= amount
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
