@@ -168,12 +168,16 @@ export class GoalService {
                 throw new ApiError(400 , "Amount cant be more than targetAmt")
             }
             const user = await Users.findById(this.userId)
+            if(amount > user.netIncome){
+                throw new ApiError(400 , "netIncome not enough")
+            }
             const income = user.income * 0.25
             if (user.netIncome <= income) {
                 goal.status = "Paused"
                 const goal = await goal.save()
                 return goal
             }
+
             this.goalBalance += amount
             this.targetAmount -= amount
 

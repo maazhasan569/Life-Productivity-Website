@@ -31,7 +31,7 @@ const createGoal = asyncHandler(async (req, res) => {
 const getGoalById = asyncHandler(async (req, res) => {
     const { goalId } = req.params
     const userId = req.user._id
-    const getGoal = await Goal.findOne({ goalId, userId })
+    const getGoal = await Goal.findOne({ _id : goalId, userId })
     res.status(200)
         .json(
             new ApiResponse(200, getGoal ? "Goal fetched" : "Goal not found by Id", getGoal)
@@ -72,7 +72,7 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
 
     const goalsData = await paginate(Goal, options)
     if (!goalsData.length) {
-        throw new ApiError(404, "Goal not found")
+        throw new ApiError(404, "Goals not found")
     }
     return res.status(200)
         .json(

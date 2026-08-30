@@ -141,7 +141,6 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
         userId
     }
     const expensesData = await paginate(Expense, options)
-
     if (expensesData.fetchedDoc.length === 0) {
         return res.status(200)
             .json(
