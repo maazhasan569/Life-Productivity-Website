@@ -90,12 +90,12 @@ export class GoalService {
                         const lastMonth = goal.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
-                        if (goal.totalDeductions >= this.duration) {
+                        if (goal.totalDeductions === this.duration) {
                             this.targetAmount !== 0 ?
-                            goal.status = "UnAchieved" : goal.status = "Achieved"      
+                                goal.status = "UnAchieved" : goal.status = "Achieved"
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
-                            await pushToHistory(this.userId, delGoal._id , "goals")
+                            await pushToHistory(this.userId, delGoal._id, "goals")
 
                         }
 
@@ -154,23 +154,10 @@ export class GoalService {
             this.frequency = goal.type
             this.category = goal.category
             this.name = goal.name
-            const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+            let deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
             const lastMonth = goal.lastDeduction?.getMonth()
             const thisMonth = new Date().getMonth()
             if (lastMonth === thisMonth) throw new ApiError(400, "Goal monthly amt already paid")
-            if (this.targetAmount === 0 && !deadlineInMonths) {
-                deadlineInMonths = 0
-            }
-            if (goal.totalDeductions >= deadlineInMonths) {
-                this.targetAmount !== 0 ?
-                    goal.status = "UnAchieved" : goal.status = "Achieved"
-                await goal.save()
-                const delGoal = await Goal.findByIdAndDelete(goal._id)
-                await pushToHistory(this.userId, delGoal._id , "goals")
-                return;
-            }
-
-
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
@@ -189,10 +176,26 @@ export class GoalService {
             goal.lastDeduction = new Date()
             goal.totalDeductions += 1
             user.netIncome -= amount
+
+            if (this.targetAmount === 0 && !deadlineInMonths) {
+                deadlineInMonths = 0
+            }
+            // as soon as user payes his monthly goal check whether the cond passes
+            if (goal.totalDeductions + 1 > deadlineInMonths || goal.totalDeductions + 1 === this.duration) {
+                this.targetAmount !== 0 ?
+                    goal.status = "UnAchieved" : goal.status = "Achieved"
+                await goal.save()
+                const delGoal = await Goal.findByIdAndDelete(goal._id)
+                await pushToHistory(this.userId, delGoal._id, "goals")
+                const updatedGoal = await goal.save()
+                const updatedUser = await user.save()
+                return { updatedGoal, updatedUser , pushedToHistory : true }
+                // if passed automaticly push the goal to history
+            }
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
-            return { updatedGoal, updatedUser }
+            return { updatedGoal, updatedUser , pushedToHistory : false }
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -246,9 +249,9 @@ export class GoalService {
             user.netIncome += updateGoal.currentAmt
             const updatedUser = await user.save()
             const deletedGoal = await Goal.findByIdAndDelete(goalId)
-            const history = await pushToHistory(this.userId , deletedGoal._id ,"goals")
+            const history = await pushToHistory(this.userId, deletedGoal._id, "goals")
             const updatedUserNetIncome = updatedUser.netIncome
-            return { updatedUserNetIncome, deletedGoal, history}
+            return { updatedUserNetIncome, deletedGoal, history }
 
 
         } catch (err) {
