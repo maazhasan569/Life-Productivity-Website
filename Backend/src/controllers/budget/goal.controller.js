@@ -140,9 +140,10 @@ const manualDeduction = asyncHandler(async (req, res) => {
 
     const goal = new GoalService(userId)
     const deductAmtData = await goal.manualDeduction(amount, goalId)
+    console.log(deductAmtData)
     return res.status(200)
         .json(
-            new ApiResponse(200, "Goal amt deducted. Goal andUser updated", deductAmtData)
+            new ApiResponse(200, "Goal amt deducted. Goal and User updated", deductAmtData)
         )
 
 })

@@ -147,6 +147,9 @@ export class GoalService {
     async manualDeduction(amount, goalId) {
         try {
             const goal = await Goal.findOne({ _id: goalId, userId: this.userId })
+            if(!goal){
+                throw new ApiError(400 , "Goal not found Or Deleted")
+            }
             this.targetAmount = goal.targetAmount
             this.goalBalance = goal.currentAmt
             this.duration = goal.duration
@@ -161,15 +164,19 @@ export class GoalService {
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
+            if(amount > this.targetAmount){
+                throw new ApiError(400 , "Amount cant be more than targetAmt")
+            }
             const user = await Users.findById(this.userId)
             const income = user.income * 0.25
             if (user.netIncome <= income) {
                 goal.status = "Paused"
-                await goal.save()
-                return;
+                const goal = await goal.save()
+                return goal
             }
             this.goalBalance += amount
             this.targetAmount -= amount
+
             goal.status = "InProgress"
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
@@ -177,17 +184,17 @@ export class GoalService {
             goal.totalDeductions += 1
             user.netIncome -= amount
 
-            if (this.targetAmount === 0 && !deadlineInMonths) {
+            if (this.targetAmount === 0 && deadlineInMonths !== 0) {
                 deadlineInMonths = 0
             }
             // as soon as user payes his monthly goal check whether the cond passes
             if (goal.totalDeductions + 1 > deadlineInMonths || goal.totalDeductions + 1 === this.duration) {
                 this.targetAmount !== 0 ?
                     goal.status = "UnAchieved" : goal.status = "Achieved"
-                await goal.save()
+                const updatedGoal = await goal.save()
+                console.log("goal saved")
                 const delGoal = await Goal.findByIdAndDelete(goal._id)
                 await pushToHistory(this.userId, delGoal._id, "goals")
-                const updatedGoal = await goal.save()
                 const updatedUser = await user.save()
                 return { updatedGoal, updatedUser , pushedToHistory : true }
                 // if passed automaticly push the goal to history
