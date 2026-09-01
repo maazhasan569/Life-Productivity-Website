@@ -1,7 +1,4 @@
-import ApiError from "./ApiError.js";
-
 export async function paginate(Model, options = {}) {
-
     let {
         page = 1,
         limit = 10,
@@ -11,8 +8,10 @@ export async function paginate(Model, options = {}) {
         userId = null,
         category = null,
     } = options;
+
     page = Math.max(1, parseInt(page, 10) || 1);
     limit = Math.max(1, parseInt(limit, 10) || 10);
+    
     let sortObj = {}
     if (sortBy) {
         const sortDirection = sortType === "desc" ? -1 : 1;
@@ -20,15 +19,20 @@ export async function paginate(Model, options = {}) {
     } else {
         sortObj.createdAt = -1
     }
+    
     let filterObj = {}
-    id && (filterObj.id = id)
-    userId && (filterObj.userId = userId);
-    category && (filterObj.category = category);
-    console.log(filterObj)
+    
+    // ← DON'T convert - keep as is
+    if (id) filterObj.id = id;
+    if (userId) filterObj.userId = userId;  // Keep as STRING
+    if (category) filterObj.category = category;
+    
     const skip = (page - 1) * limit
+    
     try {
         const totalDoc = await Model.countDocuments(filterObj)
         const totalPages = Math.ceil(totalDoc / limit)
+        
         if (totalDoc === 0) return {
             totalDoc: 0,
             totalPages: 0,
@@ -36,6 +40,7 @@ export async function paginate(Model, options = {}) {
             page,
             limit,
         }
+        
         const fetchedDoc = await Model
             .find(filterObj)
             .sort(sortObj)

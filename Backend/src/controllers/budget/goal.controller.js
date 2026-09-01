@@ -50,7 +50,7 @@ const getAllGoals = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
-    if (!goalsData) {
+    if (!goalsData.fetchedDoc.length) {
         throw new ApiError(404, "Goals not found")
     }
     return res.status(200)
@@ -71,7 +71,7 @@ const getGoalsByCategory = asyncHandler(async (req, res) => {
     }
 
     const goalsData = await paginate(Goal, options)
-    if (!goalsData.length) {
+    if (!goalsData.fetchedDoc.length) {
         throw new ApiError(404, "Goals not found")
     }
     return res.status(200)

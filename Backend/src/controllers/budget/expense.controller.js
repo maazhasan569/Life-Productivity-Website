@@ -101,7 +101,8 @@ const showAllExpense = asyncHandler(async (req, res) => {
         userId
     }
     const getAllExpenses = await paginate(Expense, options)
-    if (getAllExpenses.fetchedDoc === 0) {
+
+    if (!getAllExpenses.fetchedDoc.length) {
         return res.status(200)
             .json(
                 new ApiResponse(200, "No Expense found", [])
@@ -141,7 +142,7 @@ const getExpenseCategory = asyncHandler(async (req, res) => {
         userId
     }
     const expensesData = await paginate(Expense, options)
-    if (expensesData.fetchedDoc.length === 0) {
+    if (!expensesData.fetchedDoc.length ) {
         return res.status(200)
             .json(
                 new ApiResponse(200, "No expense found by category", expensesData)
