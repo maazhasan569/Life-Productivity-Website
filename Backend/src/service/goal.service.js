@@ -76,7 +76,7 @@ export class GoalService {
         try {
             cron.schedule('0 0 * * *', async () => {
                 const today = new Date().getDate()
-                const autoDeductionGoals = await Goal.find({ autoDeduction: true, userId: this.userId })
+                const autoDeductionGoals = await Goal.find({ autoDeduction: true, userId: this.userId , status : "InProgress" })
                 for (const goal of autoDeductionGoals) {
                     this.targetAmount = goal.targetAmount
                     this.goalBalance = goal.currentAmt
