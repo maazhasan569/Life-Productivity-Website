@@ -6,9 +6,16 @@ const loanSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : "Users"
     },
+    loanName :{
+        type : String,
+    },
+    category : {
+        type : String,
+        default : "General"
+    },
     loanType : {
         type : String,
-        enum : ['Lent' , "Borrowed"]
+        enum : ["Monthly" , "Yearly"]
     },
     loanAmt : {
         type : Number,
@@ -21,7 +28,10 @@ const loanSchema = new mongoose.Schema({
     dueDate : {
         type : Date,
     },
-    
+    autoDeduction : {
+        type : Boolean,
+        default : false
+    }
     
     
 }, {

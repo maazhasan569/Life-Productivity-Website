@@ -1,3 +1,6 @@
+import { Loan } from "../models/budget/loan.models"
+import ApiError from "../utils/ApiError"
+
 export class LoanService {
     constructor(userId , config = {}) {
         this.userId = userId,
@@ -23,6 +26,25 @@ export class LoanService {
 
         if(fieldCheck){
             throw new ApiError(400 , "Enter All fields")
+        }
+    }
+
+    async createLoan(){
+        this.validateLoan()
+        try{
+            const newLoan = await Loan.create({
+                userId : this.userId,
+                loanName : this.name,
+                loanAmt : this.loanTargetAmt,
+                currentAmt : this.totalPaid,
+                dueDate : this.targetDate,
+                loanType : this.frequency,
+                autoDeduction : this.autoDeduction,
+                category : this.category
+
+            }) 
+        }catch(err){
+            throw new ApiError(500 , err.message)
         }
     }
 }
