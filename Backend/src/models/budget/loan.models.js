@@ -17,7 +17,11 @@ const loanSchema = new mongoose.Schema({
         type : String,
         enum : ["Monthly" , "Yearly"]
     },
-    loanAmt : {
+    status : {
+        type : String,
+        enum : ["Inprogress" , "Overdue" , "Blocked"]
+    },//add status for deleting the loan 
+    loanTargetAmt : {
         type : Number,
         required : true
     },

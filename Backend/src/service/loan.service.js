@@ -10,8 +10,8 @@ export class LoanService {
             this.frequency = config.frequency,
             this.category = config.category,
             this.duration = config.duration,
-            this.autoDeduction = config.autoDeduction
-        this.totalPaid = 0,
+            this.autoDeduction = config.autoDeduction,
+            this.totalPaid = 0
 
     }
 
@@ -41,8 +41,8 @@ export class LoanService {
                 dueDate: this.targetDate,
                 loanType: this.frequency,
                 autoDeduction: this.autoDeduction,
-                category: this.category
-
+                category: this.category,
+                status: "Inprogress"
             })
 
             return newLoan
@@ -70,5 +70,50 @@ export class LoanService {
 
         const totalMonths = yearDiff * 12 + monthDiff;
         return totalMonths
+    }
+    async editLoan(loanId) {
+        try {
+            if (!loanId) {
+                throw new ApiError(400, "No goal if found")
+            }
+            this.validateLoan()
+            const updateLoan = await Loan.findByIdAndUpdate(
+                goalId,
+                {
+                    userId: this.userId,
+                    loanName: this.name,
+                    loanTargetAmt: this.loanTargetAmt,
+                    currentAmt: this.totalPaid,
+                    dueDate: this.targetDate,
+                    loanType: this.frequency,
+                    autoDeduction: this.autoDeduction,
+                    category: this.category
+                },
+                { new: true }
+            )
+            return updateLoan
+        } catch (err) {
+            throw new ApiError(400, err.message)
+        }
+    }
+    async AmtPaid() {
+        try {
+            const userLoans = await Loan.find({ userId: this.userId })
+            if (!userLoans) return 0
+            const totalPaid = userLoans.reduce((sum, loan) => sum + loan.currentAmt, 0)
+            return totalPaid
+        } catch (err) {
+            throw new ApiError(500, err.message)
+        }
+    }
+    async AmtRemaining() {
+        try {
+            const userLoans = await Loan.find({ userId: this.userId })
+            if (!userLoans) return 0
+            const loansAmtRemaining = userLoans.reduce((sum, loan) => sum + loan.loanTargetAmt, 0)
+            return loansAmtRemaining
+        } catch (err) {
+            throw new ApiError(500, err.msg)
+        }
     }
 }
