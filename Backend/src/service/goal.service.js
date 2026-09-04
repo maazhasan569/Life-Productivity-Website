@@ -261,11 +261,11 @@ export class GoalService {
                 { returnDocument: 'after' }
             );
             if (!updateGoal) return null
+            const deletedGoal = await Goal.findByIdAndDelete(goalId)
+            const history = await pushToHistory(this.userId, deletedGoal._id, "goals")
             const user = await Users.findById(this.userId)
             user.netIncome += updateGoal.currentAmt
             const updatedUser = await user.save()
-            const deletedGoal = await Goal.findByIdAndDelete(goalId)
-            const history = await pushToHistory(this.userId, deletedGoal._id, "goals")
             const updatedUserNetIncome = updatedUser.netIncome
             return { updatedUserNetIncome, deletedGoal, history }
 

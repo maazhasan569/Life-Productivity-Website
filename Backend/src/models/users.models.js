@@ -31,6 +31,9 @@ const usersSchema = new mongoose.Schema({
         sparse: true
 
     },
+    bankBalance : {
+        type : Number,
+    },
     email: {
         type: String,
         unique: true,

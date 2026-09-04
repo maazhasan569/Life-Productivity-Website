@@ -2,7 +2,8 @@ import { Loan } from "../models/budget/loan.models"
 import ApiError from "../utils/ApiError"
 import { Users } from "../models/users.models"
 import cron from "node-cron"
-import { use } from "react"
+import { isValidObjectId } from "mongoose"
+import pushToHistory from "../utils/pushToHistory"
 export class LoanService {
     constructor(userId, config = {}) {
         this.userId = userId,
@@ -194,6 +195,40 @@ export class LoanService {
             })
         } catch (err) {
             throw new ApiError(400, err.message)
+        }
+    }
+    async manualDeduction(){
+
+    }
+    async alert(){
+
+    }
+    async deleteLoan(loanId){
+        if(!loanId){
+            throw new ApiError(400 , "No loan id found")
+        }
+        
+        try{
+            if(!isValidObjectId(loanId)){
+            throw new ApiError(400 , "Invalid mongoose objId")
+        }
+
+        const updateLoan = await Loan.findByIdAndUpdate(
+            loanId,
+            {
+                status : "Cancelled"
+            },
+            {new : true}
+        )
+        if(!updateLoan) return null
+       
+        const deletedLoan = await Loan.findByIdAndDelete(loanId)
+        const history = await pushToHistory(this.userId , deletedLoan._id , "loans")
+        
+        //add the post-deletion logic like adding something 
+        return {history , deletedLoan }
+        }catch(err){
+            throw new ApiError(400 , err.message)
         }
     }
 }

@@ -30,8 +30,8 @@ export const questions = asyncHandler(async (req, res) => {
             currency,
             income,
             netIncome : income - budget,
-            budget
-
+            budget,
+            bankBalance,
         },
         { new: true }
     )
