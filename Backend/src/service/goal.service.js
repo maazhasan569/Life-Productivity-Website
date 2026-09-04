@@ -29,6 +29,9 @@ export class GoalService {
             throw new ApiError(400, "Enter All fields")
         }
 
+        if(this.targetAmount < 0){
+            throw new ApiError(400 , "enter a valid targetAmt")
+        }
 
     }
     async createGoal() {
