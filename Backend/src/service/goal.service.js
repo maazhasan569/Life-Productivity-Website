@@ -99,7 +99,7 @@ export class GoalService {
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
                             await pushToHistory(this.userId, delGoal._id, "goals")
-
+                            continue;
                         }
 
                         const user = await Users.findById(this.userId)
@@ -126,14 +126,8 @@ export class GoalService {
                         const currentDay = new Date()
                         let targetMonth = currentDay.getMonth() + 1
                         let targetYear = currentDay.getFullYear()
-
-                        if (targetMonth > 11) {
-                            targetMonth = 0
-                            targetYear += 1
-                        }
                         const getTargetDate = new Date(targetYear, targetMonth + 1, 0).getDate();
                         const safeDay = Math.min(getTargetDate, orgDate)
-
                         goal.deductionDay = new Date(targetYear, targetMonth, safeDay)
 
                         const updatedGoal = await goal.save();
