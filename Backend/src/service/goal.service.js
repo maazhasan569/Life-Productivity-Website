@@ -100,7 +100,7 @@ export class GoalService {
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
                             await pushToHistory(this.userId, delGoal._id, "goals")
-
+                            
                         }
 
                         const user = await Users.findById(this.userId)

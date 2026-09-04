@@ -2,6 +2,7 @@ import { Loan } from "../models/budget/loan.models"
 import ApiError from "../utils/ApiError"
 import { Users } from "../models/users.models"
 import cron from "node-cron"
+import { use } from "react"
 export class LoanService {
     constructor(userId, config = {}) {
         this.userId = userId,
@@ -21,14 +22,14 @@ export class LoanService {
                 if (typeof field === 'string') {
                     return !field || field.trim() === ""
                 }
-                if(!field) return !field
+                if (!field) return !field
             })
         if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
         }
 
-        if(this.loanTargetAmt < 0 ) {
-            throw new ApiError(400 , "Enter a Valid amt")
+        if (this.loanTargetAmt < 0) {
+            throw new ApiError(400, "Enter a Valid amt")
         }
     }
 
@@ -52,7 +53,7 @@ export class LoanService {
                 { $inc: { bankBalance: this.loanTargetAmt } },
                 { new: true }
             )
-            return {newLoan , updateUserBankbalance}
+            return { newLoan, updateUserBankbalance }
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -124,17 +125,17 @@ export class LoanService {
             throw new ApiError(500, err.msg)
         }
     }
-    async autoDeductAmt(){
-        try{
-            cron.schedule('0 0 * * * ' , async ()=> {
+    async autoDeductAmt() {
+        try {
+            cron.schedule('0 0 * * * ', async () => {
                 const today = new Date()
                 const autoDeductionLoans = await Loan.find({
-                    autoDeduction : true,
-                    userId : this.userId,
-                    status : "Inprogress"
+                    autoDeduction: true,
+                    userId: this.userId,
+                    status: "Inprogress"
                 })
-                
-                for(const loan of autoDeductionLoans){
+
+                for (const loan of autoDeductionLoans) {
                     this.loanTargetAmt = loan.loanTargetAmt
                     this.totalPaid = loan.currentAmt
                     this.duration = loan.duration
@@ -143,18 +144,56 @@ export class LoanService {
                     this.category = loan.category
                     this.name = loan.name
 
-                    if(today.getDate() === loan.deductionDay.getDate()){
+                    if (today.getDate() === loan.deductionDay.getDate()) {
                         const lastMonth = loan.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
-                        if(lastMonth === thisMonth) continue;
-                        
-                        if(loan.totalDeductions === this.duration){
+                        if (lastMonth === thisMonth) continue;
+
+                        if (loan.totalDeductions === this.duration) {
                             this.targetAmount !== 0 ?
-                            loan.status = "Overdue" : loan.status = "Completed"
+                                loan.status = "Overdue" : loan.status = "Completed"
+                            await loan.save()
+                            continue;
                         }
+
+                        const user = await Users.findByIdAndUpdate(this.userId)
+                        const income = user.income * 0.25
+                        if (user.netIncome <= income) {
+                            loan.status = "Paused"
+                            await loan.save()
+                            continue;
+                        }
+
+                        const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+                        const deductAmt = (this.loanTargetAmt - this.totalPaid) / deadlineInMonths
+                        this.totalPaid += deductAmt
+                        this.loanTargetAmt -= deductAmt
+
+                        loan.currentAmt = this.totalPaid
+                        loan.loanTargetAmt = this.loanTargetAmt
+                        user.netIncome -= deductAmt
+                        loan.lastDeduction = new Date()
+                        loan.totalDeductions += 1
+
+                        const orgDate = new Date(loan.createdAt).getDate()
+                        const currentDay = new Date()
+                        let targetMonth = currentDay.getMonth() + 1
+                        let targetYear = currentDay.getFullYear()
+                        const daysInNextMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+                        const safeDay = Math.min(daysInNextMonth, orgDate)
+                        loan.deductionDay = new Date(targetYear, targetMonth, safeDay)
+
+                        const updatedLoan = await loan.save()
+                        const updatedUser = await user.save()
+
+                        return { updatedLoan, updatedUser }
+
+
                     }
                 }
             })
+        } catch (err) {
+            throw new ApiError(400, err.message)
         }
     }
 }
