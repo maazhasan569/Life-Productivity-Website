@@ -1,6 +1,7 @@
 import { Loan } from "../models/budget/loan.models"
 import ApiError from "../utils/ApiError"
-
+import { Users } from "../models/users.models"
+import cron from "node-cron"
 export class LoanService {
     constructor(userId, config = {}) {
         this.userId = userId,
@@ -12,7 +13,6 @@ export class LoanService {
             this.duration = config.duration,
             this.autoDeduction = config.autoDeduction,
             this.totalPaid = 0
-
     }
 
     validateLoan() {
@@ -21,11 +21,14 @@ export class LoanService {
                 if (typeof field === 'string') {
                     return !field || field.trim() === ""
                 }
-                return !field
+                if(!field) return !field
             })
-
         if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
+        }
+
+        if(this.loanTargetAmt < 0 ) {
+            throw new ApiError(400 , "Enter a Valid amt")
         }
     }
 
@@ -44,8 +47,12 @@ export class LoanService {
                 category: this.category,
                 status: "Inprogress"
             })
-
-            return newLoan
+            const updateUserBankbalance = await Users.findByIdAndUpdate(
+                this.userId,
+                { $inc: { bankBalance: this.loanTargetAmt } },
+                { new: true }
+            )
+            return {newLoan , updateUserBankbalance}
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -76,6 +83,7 @@ export class LoanService {
             if (!loanId) {
                 throw new ApiError(400, "No goal if found")
             }
+            this.setTargetDate(duration, frequency)
             this.validateLoan()
             const updateLoan = await Loan.findByIdAndUpdate(
                 goalId,
@@ -114,6 +122,39 @@ export class LoanService {
             return loansAmtRemaining
         } catch (err) {
             throw new ApiError(500, err.msg)
+        }
+    }
+    async autoDeductAmt(){
+        try{
+            cron.schedule('0 0 * * * ' , async ()=> {
+                const today = new Date()
+                const autoDeductionLoans = await Loan.find({
+                    autoDeduction : true,
+                    userId : this.userId,
+                    status : "Inprogress"
+                })
+                
+                for(const loan of autoDeductionLoans){
+                    this.loanTargetAmt = loan.loanTargetAmt
+                    this.totalPaid = loan.currentAmt
+                    this.duration = loan.duration
+                    this.autoDeductAmt = loan.autoDeduction
+                    this.frequency = loan.type
+                    this.category = loan.category
+                    this.name = loan.name
+
+                    if(today.getDate() === loan.deductionDay.getDate()){
+                        const lastMonth = loan.lastDeduction?.getMonth()
+                        const thisMonth = today.getMonth()
+                        if(lastMonth === thisMonth) continue;
+                        
+                        if(loan.totalDeductions === this.duration){
+                            this.targetAmount !== 0 ?
+                            loan.status = "Overdue" : loan.status = "Completed"
+                        }
+                    }
+                }
+            })
         }
     }
 }

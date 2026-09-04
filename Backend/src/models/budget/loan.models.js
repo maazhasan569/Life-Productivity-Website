@@ -19,7 +19,7 @@ const loanSchema = new mongoose.Schema({
     },
     status : {
         type : String,
-        enum : ["Inprogress" , "Overdue" , "Blocked"]
+        enum : ["Inprogress" , "Overdue" , "Blocked" , "Completed" , "Cancelled"]
     },//add status for deleting the loan 
     loanTargetAmt : {
         type : Number,
@@ -32,10 +32,24 @@ const loanSchema = new mongoose.Schema({
     dueDate : {
         type : Date,
     },
+    duration : {
+        type : Number
+    },
     autoDeduction : {
         type : Boolean,
         default : false
+    },
+    totalDeductions : {
+        type : Number,
+        default : 0
+    },
+    lastDeduction: {
+        type : Date
+    },
+    deductionDay:{
+        type : Date
     }
+
     
     
 }, {

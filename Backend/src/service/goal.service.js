@@ -44,7 +44,7 @@ export class GoalService {
                 type: this.frequency,
                 duration: this.duration,
                 autoDeduction: this.autoDeduction,
-                category: this.category
+                category: this.category,
 
             })
             return newGoal
@@ -75,8 +75,12 @@ export class GoalService {
     async autoDeductAmount() {
         try {
             cron.schedule('0 0 * * *', async () => {
-                const today = new Date().getDate()
-                const autoDeductionGoals = await Goal.find({ autoDeduction: true, userId: this.userId , status : "InProgress" })
+                const today = new Date()
+                const autoDeductionGoals = await Goal.find({
+                    autoDeduction: true,
+                    userId: this.userId,
+                    status: "InProgress"
+                })
                 for (const goal of autoDeductionGoals) {
                     this.targetAmount = goal.targetAmount
                     this.goalBalance = goal.currentAmt
@@ -147,8 +151,8 @@ export class GoalService {
     async manualDeduction(amount, goalId) {
         try {
             const goal = await Goal.findOne({ _id: goalId, userId: this.userId })
-            if(!goal){
-                throw new ApiError(400 , "Goal not found Or Deleted")
+            if (!goal) {
+                throw new ApiError(400, "Goal not found Or Deleted")
             }
             this.targetAmount = goal.targetAmount
             this.goalBalance = goal.currentAmt
@@ -164,12 +168,12 @@ export class GoalService {
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
-            if(amount > this.targetAmount){
-                throw new ApiError(400 , "Amount cant be more than targetAmt")
+            if (amount > this.targetAmount) {
+                throw new ApiError(400, "Amount cant be more than targetAmt")
             }
             const user = await Users.findById(this.userId)
-            if(amount > user.netIncome){
-                throw new ApiError(400 , "netIncome not enough")
+            if (amount > user.netIncome) {
+                throw new ApiError(400, "netIncome not enough")
             }
             const income = user.income * 0.25
             if (user.netIncome <= income) {
@@ -200,13 +204,13 @@ export class GoalService {
                 const delGoal = await Goal.findByIdAndDelete(goal._id)
                 await pushToHistory(this.userId, delGoal._id, "goals")
                 const updatedUser = await user.save()
-                return { updatedGoal, updatedUser , pushedToHistory : true }
+                return { updatedGoal, updatedUser, pushedToHistory: true }
                 // if passed automaticly push the goal to history
             }
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
-            return { updatedGoal, updatedUser , pushedToHistory : false }
+            return { updatedGoal, updatedUser, pushedToHistory: false }
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -220,6 +224,7 @@ export class GoalService {
             if (!goalId) {
                 throw new ApiError(400, "No goal id found")
             }
+            this.setTargetDate(duration, frequency)
             this.validateGoal()
             const updatedGoal = await Goal.findByIdAndUpdate(
                 goalId,
