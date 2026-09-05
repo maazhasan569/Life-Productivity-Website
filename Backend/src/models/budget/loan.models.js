@@ -48,8 +48,10 @@ const loanSchema = new mongoose.Schema({
     },
     deductionDay:{
         type : Date
+    },
+    deletionReason : {
+        type : String 
     }
-
     
     
 }, {

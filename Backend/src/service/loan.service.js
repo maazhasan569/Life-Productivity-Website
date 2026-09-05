@@ -4,6 +4,7 @@ import { Users } from "../models/users.models"
 import cron from "node-cron"
 import { isValidObjectId } from "mongoose"
 import pushToHistory from "../utils/pushToHistory"
+import { convertToSnakeCase } from "../utils/convertToSnakeCase"
 export class LoanService {
     constructor(userId, config = {}) {
         this.userId = userId,
@@ -151,9 +152,15 @@ export class LoanService {
                         if (lastMonth === thisMonth) continue;
 
                         if (loan.totalDeductions === this.duration) {
-                            this.targetAmount !== 0 ?
-                                loan.status = "Overdue" : loan.status = "Completed"
+                            const status = this.loanTargetAmt !== 0 ?
+                                "Overdue" : "Completed"
+
+                            loan.status = status
                             await loan.save()
+                            if (status === "Completed") {
+                                const deleteLoan = await Loan.findByIdAndDelete(loan._is)
+                                await pushToHistory(this.userId, deleteLoan._id, "loans")
+                            }
                             continue;
                         }
 
@@ -197,38 +204,55 @@ export class LoanService {
             throw new ApiError(400, err.message)
         }
     }
-    async manualDeduction(){
+    async manualDeduction() {
 
     }
-    async alert(){
+    async alert() {
 
     }
-    async deleteLoan(loanId){
-        if(!loanId){
-            throw new ApiError(400 , "No loan id found")
-        }
-        
-        try{
-            if(!isValidObjectId(loanId)){
-            throw new ApiError(400 , "Invalid mongoose objId")
+    async deleteLoan(loanId, reason) {
+
+        if (!loanId) {
+            throw new ApiError(400, "No loan id found")
         }
 
-        const updateLoan = await Loan.findByIdAndUpdate(
-            loanId,
-            {
-                status : "Cancelled"
-            },
-            {new : true}
-        )
-        if(!updateLoan) return null
-       
-        const deletedLoan = await Loan.findByIdAndDelete(loanId)
-        const history = await pushToHistory(this.userId , deletedLoan._id , "loans")
-        
-        //add the post-deletion logic like adding something 
-        return {history , deletedLoan }
-        }catch(err){
-            throw new ApiError(400 , err.message)
+        try {
+            if (!isValidObjectId(loanId)) {
+                throw new ApiError(400, "Invalid mongoose objId")
+            }
+
+            const userReason = convertToSnakeCase(reason)
+            const reasons = [
+                "created_by_mistake",
+                "no_longer_needed",
+                "found_alternative",
+                "personal_reason",
+                "other"
+            ]
+
+            if (!reasons.includes(userReason)) {
+                throw new ApiError(400, "Invalid loan deletion reason")
+            }
+            const updateLoan = await Loan.findByIdAndUpdate(
+                loanId,
+                {
+                    status: "Cancelled",
+                    deletionReason: userReason
+                },
+                { new: true }
+            )
+
+            const updatedUserBankBalance = await Users.findByIdAndUpdate(
+                this.userId,
+                {
+                    $inc: { bankBalance: updateLoan.currentAmt }
+                }
+            )
+            const deletedLoan = await Loan.findByIdAndDelete(loanId)
+            const history = await pushToHistory(this.userId, deletedLoan._id, "loans")
+            return { history, deletedLoan, updatedUserBankBalance }
+        } catch (err) {
+            throw new ApiError(400, err.message)
         }
     }
 }
