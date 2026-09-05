@@ -45,7 +45,7 @@ export class LoanService {
                 loanAmt: this.loanTargetAmt,
                 currentAmt: this.totalPaid,
                 dueDate: this.targetDate,
-                duration: this.duration
+                duration: this.duration,
                 loanType: this.frequency,
                 autoDeduction: this.autoDeduction,
                 category: this.category,
@@ -95,7 +95,7 @@ export class LoanService {
                     userId: this.userId,
                     loanName: this.name,
                     loanTargetAmt: this.loanTargetAmt,
-                    duration: this.duration
+                    duration: this.duration,
                     currentAmt: this.totalPaid,
                     dueDate: this.targetDate,
                     loanType: this.frequency,
