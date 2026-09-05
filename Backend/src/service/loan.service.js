@@ -45,6 +45,7 @@ export class LoanService {
                 loanAmt: this.loanTargetAmt,
                 currentAmt: this.totalPaid,
                 dueDate: this.targetDate,
+                duration: this.duration
                 loanType: this.frequency,
                 autoDeduction: this.autoDeduction,
                 category: this.category,
@@ -94,6 +95,7 @@ export class LoanService {
                     userId: this.userId,
                     loanName: this.name,
                     loanTargetAmt: this.loanTargetAmt,
+                    duration: this.duration
                     currentAmt: this.totalPaid,
                     dueDate: this.targetDate,
                     loanType: this.frequency,
@@ -204,9 +206,58 @@ export class LoanService {
             throw new ApiError(400, err.message)
         }
     }
-    async manualDeduction() {
+    async manualDeduction(amount, loanId) {
+        if (!loanId) {
+            throw new ApiError(400, "loan id is required")
+        }
+        if (!isValidObjectId(loanId)) {
+            throw new ApiError(400, "Invalid loanid")
+        }
+
+        const loan = await Loan.findOne({
+            _id: loanId,
+            userId: this.userId,
+            autoDeduction: false,
+            status: "Inprogress"
+        })
+
+        if (!loan) {
+            throw ApiError(400, "Loan not found or deleted")
+        }
+
+        this.loanTargetAmt = loan.loanTargetAmt
+        this.totalPaid = loan.currentAmt
+        this.duration = loan.duration
+        this.autoDeductAmt = loan.autoDeduction
+        this.frequency = loan.type
+        this.category = loan.category
+        this.name = loan.name
+
+        let deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+        const lastMonth = loan.lastDeduction?.getMonth()
+        const thisMonth = new Date().getMonth()
+        if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
+
+        if (!amount || amount < 0){
+            throw new ApiError(400 , "Enter a valid amount")
+        }
+
+        if(amount > this.loanTargetAmt){
+            throw new ApiError(400 , "Amount cant be more than targetAmt")
+        }
+
+        const user = await Users.findById(this.userId)
+        if(amount > user.netIncome){
+            throw new ApiError(400 , "Amount to large . netIncome not enough")
+        }
+
+        const income = user.income * 0.25
+        if(user.netIncome <= income ){
+            loan.status = 
+        }
 
     }
+
     async alert() {
 
     }
@@ -233,10 +284,10 @@ export class LoanService {
             if (!validReasons.includes(userReason)) {
                 throw new ApiError(400, "Invalid loan deletion reason")
             }
-            
+
             const loan = await Loan.findById(loanId)
-            if(!loan){
-                throw new ApiError(400 , "Loan not found")
+            if (!loan) {
+                throw new ApiError(400, "Loan not found")
             }
             const updatedUserBankBalance = await Users.findByIdAndUpdate(
                 this.userId,

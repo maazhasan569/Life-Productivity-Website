@@ -150,7 +150,12 @@ export class GoalService {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const goal = await Goal.findOne({ _id: goalId, userId: this.userId })
+            const goal = await Goal.findOne({
+                 _id: goalId, 
+                 userId: this.userId, 
+                 autoDeduction : false,
+                 status : "InProgress"
+            })
             if (!goal) {
                 throw new ApiError(400, "Goal not found Or Deleted")
             }
@@ -173,7 +178,7 @@ export class GoalService {
             }
             const user = await Users.findById(this.userId)
             if (amount > user.netIncome) {
-                throw new ApiError(400, "netIncome not enough")
+                throw new ApiError(400, "Amount to large . netIncome not enough")
             }
             const income = user.income * 0.25
             if (user.netIncome <= income) {
