@@ -183,14 +183,14 @@ export class GoalService {
             const income = user.income * 0.25
             if (user.netIncome <= income) {
                 goal.status = "Paused"
-                const goal = await goal.save()
+                const saveGoal = await goal.save()
                 return goal
             }
 
             this.goalBalance += amount
             this.targetAmount -= amount
 
-            goal.status = "InProgress"
+            
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
@@ -205,7 +205,6 @@ export class GoalService {
                 this.targetAmount !== 0 ?
                     goal.status = "UnAchieved" : goal.status = "Achieved"
                 const updatedGoal = await goal.save()
-                console.log("goal saved")
                 const delGoal = await Goal.findByIdAndDelete(goal._id)
                 await pushToHistory(this.userId, delGoal._id, "goals")
                 const updatedUser = await user.save()
