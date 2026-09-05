@@ -222,7 +222,7 @@ export class LoanService {
             }
 
             const userReason = convertToSnakeCase(reason)
-            const reasons = [
+            const validReasons = [
                 "created_by_mistake",
                 "no_longer_needed",
                 "found_alternative",
@@ -230,22 +230,18 @@ export class LoanService {
                 "other"
             ]
 
-            if (!reasons.includes(userReason)) {
+            if (!validReasons.includes(userReason)) {
                 throw new ApiError(400, "Invalid loan deletion reason")
             }
-            const updateLoan = await Loan.findByIdAndUpdate(
-                loanId,
-                {
-                    status: "Cancelled",
-                    deletionReason: userReason
-                },
-                { new: true }
-            )
-
+            
+            const loan = await Loan.findById(loanId)
+            if(!loan){
+                throw new ApiError(400 , "Loan not found")
+            }
             const updatedUserBankBalance = await Users.findByIdAndUpdate(
                 this.userId,
                 {
-                    $inc: { bankBalance: updateLoan.currentAmt }
+                    $inc: { bankBalance: loan.currentAmt }
                 }
             )
             const deletedLoan = await Loan.findByIdAndDelete(loanId)

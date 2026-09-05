@@ -256,7 +256,7 @@ export class GoalService {
             const updateGoal = await Goal.findOneAndUpdate(
                 { _id: goalId },
                 {
-                    $set: { status: "Abandoned" } // Fixed spelling and added $set
+                    $set: { status: "Abandoned" } 
                 },
                 { returnDocument: 'after' }
             );
