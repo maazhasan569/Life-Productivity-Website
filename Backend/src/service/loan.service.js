@@ -296,8 +296,36 @@ export class LoanService {
 
     }
 
-    async alert() {
+    async alert(loanId) {
+         //get the lastdeduction array
+         //loop over each element
+         //check if there a time of the month where user hasnot paid for 3 or more months
+         //if yes set consecutive = true
+         //if not give a normal alert 
+         //also return no. of consecutive miss deduction
 
+         let consecutive = false
+         let totalMissedDeductions;
+
+         const loan = await Loan.findById(loanId)
+
+         loan.deductions.forEach((elem) => {
+            const prevDeduction = elem.getMonth()
+            const nextDeduction = elem.getMonth()
+            const monthsDiff = nextDeduction - prevDeduction
+            
+           if(monthsDiff >= 3){
+            totalMissedDeductions = monthsDiff
+            consecutive = true
+           }else if (monthsDiff > 1 && monthsDiff < 3){
+            totalMissedDeductions = monthsDiff
+            consecutive = false
+           }
+         })
+
+         return {totalMissedDeductions , consecutive}
+         
+         
     }
     async deleteLoan(loanId, reason) {
 
