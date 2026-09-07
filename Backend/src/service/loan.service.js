@@ -148,8 +148,9 @@ export class LoanService {
                     this.category = loan.category
                     this.name = loan.name
 
+                    const lastdeductionidx = loan.deductionDates.length - 1
                     if (today.getDate() === loan.deductionDay.getDate()) {
-                        const lastMonth = loan.lastDeduction?.getMonth()
+                        const lastMonth = loan.deductionDates[lastdeductionidx]?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
 
@@ -234,8 +235,9 @@ export class LoanService {
         this.category = loan.category
         this.name = loan.name
 
+        const lastDeductionIdx = loan.deductionDates.length - 1
         let deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
-        const lastMonth = loan.lastDeduction?.getMonth()
+        const lastMonth = loan.deductionDates[lastDeductionIdx]?.getMonth()
         const thisMonth = new Date().getMonth()
         if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
 
@@ -333,7 +335,6 @@ export class LoanService {
            }
          })
 
-         if (undo )
 
          return {totalMissedDeductions , consecutive}
          
