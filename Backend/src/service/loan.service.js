@@ -140,6 +140,7 @@ export class LoanService {
                 })
 
                 for (const loan of autoDeductionLoans) {
+                    
                     this.loanTargetAmt = loan.loanTargetAmt
                     this.totalPaid = loan.currentAmt
                     this.duration = loan.duration
@@ -298,7 +299,7 @@ export class LoanService {
 
     }
 
-    async alertOrBlockLoan(loanId , undoAlertOrBlockLoan) {
+    async alertOrBlockLoan(loanId , undoAlertOrUnBlockLoan = false) {
          //get the lastdeduction array
          //loop over each element
          //check if there a time of the month where user hasnot paid for 3 or more months
@@ -308,7 +309,6 @@ export class LoanService {
 
          let consecutive = false
          let totalMissedDeductions;
-         let isLoanInAlert = false
 
          const loan = await Loan.findById(loanId)
 
