@@ -182,7 +182,7 @@ export class LoanService {
                         loan.currentAmt = this.totalPaid
                         loan.loanTargetAmt = this.loanTargetAmt
                         user.netIncome -= deductAmt
-                        loan.lastDeduction = new Date()
+                        loan.deductionDates.append(new Date)
                         loan.totalDeductions += 1
 
                         const orgDate = new Date(loan.createdAt).getDate()
@@ -264,7 +264,7 @@ export class LoanService {
 
         loan.loanTargetAmt = this.loanTargetAmt
         loan.currentAmt = this.totalPaid
-        loan.lastDeduction = new Date()
+        loan.deductionDates.append(new Date())
         loan.totalDeductions += 1
         user.netIncome -= amount
 
@@ -296,7 +296,7 @@ export class LoanService {
 
     }
 
-    async alert(loanId) {
+    async alertOrBlockLoan(loanId , undoAlertOrBlockLoan) {
          //get the lastdeduction array
          //loop over each element
          //check if there a time of the month where user hasnot paid for 3 or more months
@@ -306,22 +306,34 @@ export class LoanService {
 
          let consecutive = false
          let totalMissedDeductions;
+         let isLoanInAlert = false
 
          const loan = await Loan.findById(loanId)
 
-         loan.deductions.forEach((elem) => {
-            const prevDeduction = elem.getMonth()
-            const nextDeduction = elem.getMonth()
+         if(undoAlertOrBlockLoan){
+         if(loan.status === "Blocked" || loan.status === "Alert") loan.status = "Inprogress"
+            return
+         }
+         
+         const dates = loan.deductionDates
+         loan.deductionDates.forEach((elem , idx) => {
+            const prevDeduction = dates[idx].getMonth()
+            const nextDeduction = dates[idx + 1].getMonth()
             const monthsDiff = nextDeduction - prevDeduction
             
            if(monthsDiff >= 3){
+            isLoanInAlert = true
             totalMissedDeductions = monthsDiff
             consecutive = true
+
            }else if (monthsDiff > 1 && monthsDiff < 3){
             totalMissedDeductions = monthsDiff
             consecutive = false
+            isLoanInAlert = true
            }
          })
+
+         if (undo )
 
          return {totalMissedDeductions , consecutive}
          
