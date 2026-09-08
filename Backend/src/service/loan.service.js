@@ -113,7 +113,7 @@ export class LoanService {
             throw new ApiError(400, err.message)
         }
     }
-    async AmtPaid() {
+    async amtPaid() {
         try {
             const userLoans = await Loan.find({ userId: this.userId })
             if (!userLoans) return 0
@@ -123,7 +123,7 @@ export class LoanService {
             throw new ApiError(500, err.message)
         }
     }
-    async AmtRemaining() {
+    async amtRemaining() {
         try {
             const userLoans = await Loan.find({ userId: this.userId })
             if (!userLoans) return 0
