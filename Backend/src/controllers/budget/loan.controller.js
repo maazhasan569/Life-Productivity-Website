@@ -101,7 +101,7 @@ const autoDeduction = asyncHandler(async(req,res)=> {
     const userId = req.user._id
 
     const loan = new LoanService(userId)
-    const autoDeductLoamAmt = loan.autoDeductAmt()
+    const autoDeductLoamAmt = await loan.autoDeductAmt()
 
     return res.status(200)
     .json(
@@ -113,7 +113,7 @@ const manualDeduction = asyncHandler(async(req,res)=> {
     const userId = req.user._id
 
     const loan = new LoanService(userId)
-    const manualDeductLoanAmt = loan.manualDeduction()
+    const manualDeductLoanAmt = await loan.manualDeduction()
 
     return res.status(200)
     .json(
@@ -121,4 +121,16 @@ const manualDeduction = asyncHandler(async(req,res)=> {
     )
 })
 
-const 
+const deleteLoan = asyncHandler(async(req,res)=> {
+    const userId = req.user._id
+    const {loanId} = req.params
+    const {deletionReason} = req.body
+
+    const loan = new LoanService(userId)
+    const deleteLoan = await loan.deleteLoan(loanId , deletionReason)
+
+    res.status(200)
+    .json(
+        new ApiResponse(200 , "loan successfully deleted" , deleteLoan)
+    )
+})

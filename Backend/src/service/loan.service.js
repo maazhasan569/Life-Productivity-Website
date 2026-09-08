@@ -348,7 +348,7 @@ export class LoanService {
 
          
     }
-    async deleteLoan(loanId, reason) {
+    async deleteLoan(loanId, deletionReason) {
 
         if (!loanId) {
             throw new ApiError(400, "No loan id found")
@@ -359,7 +359,7 @@ export class LoanService {
                 throw new ApiError(400, "Invalid mongoose objId")
             }
 
-            const userReason = convertToSnakeCase(reason)
+            const userReason = convertToSnakeCase(deletionReason)
             const validReasons = [
                 "created_by_mistake",
                 "no_longer_needed",
