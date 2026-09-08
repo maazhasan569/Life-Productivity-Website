@@ -49,7 +49,7 @@ export class LoanService {
                 loanType: this.frequency,
                 autoDeduction: this.autoDeduction,
                 category: this.category,
-                status: "Inprogress"
+                status: "in_progress"
             })
             const updateUserBankbalance = await Users.findByIdAndUpdate(
                 this.userId,
@@ -136,7 +136,7 @@ export class LoanService {
                 const autoDeductionLoans = await Loan.find({
                     autoDeduction: true,
                     userId: this.userId,
-                    status: "Inprogress"
+                    status: "in_progress"
                 })
 
                 for (const loan of autoDeductionLoans) {
@@ -221,7 +221,7 @@ export class LoanService {
             _id: loanId,
             userId: this.userId,
             autoDeduction: false,
-            status: "Inprogress"
+            status: "in_progress"
         })
 
         if (!loan) {
@@ -257,10 +257,11 @@ export class LoanService {
 
         const income = user.income * 0.25
         if (user.netIncome <= income) {
-            loan.status = "Paused"
+            loan.status = "no_funds"
             const saveloan = await loan.save()
             return saveloan
         }
+
 
         this.totalPaid += amount
         this.loanTargetAmt -= amount
@@ -299,7 +300,7 @@ export class LoanService {
 
     }
 
-    async alertOrBlockLoan(loanId , undoAlertOrUnBlockLoan = false) {
+    async pauseLoan(loanId , undoAlertOrUnBlockLoan = false) {
          //get the lastdeduction array
          //loop over each element
          //check if there a time of the month where user hasnot paid for 3 or more months
@@ -312,8 +313,8 @@ export class LoanService {
 
          const loan = await Loan.findById(loanId)
 
-         if(undoAlertOrBlockLoan){
-         if(loan.status === "Blocked" || loan.status === "Alert") loan.status = "Inprogress"
+         if(undoAlertOrUnBlockLoan){
+         if(loan.status === "Paused") loan.status = "in_progress"
             return
          }
          
@@ -324,20 +325,25 @@ export class LoanService {
             const monthsDiff = nextDeduction - prevDeduction
             
            if(monthsDiff >= 3){
-            isLoanInAlert = true
+            loan.status = "Paused"
             totalMissedDeductions = monthsDiff
             consecutive = true
 
            }else if (monthsDiff > 1 && monthsDiff < 3){
+            loan.status = "Paused"
             totalMissedDeductions = monthsDiff
             consecutive = false
-            isLoanInAlert = true
+
            }
          })
 
+         await loan.save()
 
          return {totalMissedDeductions , consecutive}
          
+         //alert feature will be added in the next version 1.1
+         //loan will have seperate alert field containing an alert msg of the loan
+
          
     }
     async deleteLoan(loanId, reason) {

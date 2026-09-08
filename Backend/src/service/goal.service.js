@@ -40,7 +40,7 @@ export class GoalService {
                 goalName: this.name,
                 achievementDate: this.targetDate,
                 targetAmount: this.targetAmount,
-                status: "InProgress",
+                status: "in_progress",
                 type: this.frequency,
                 duration: this.duration,
                 autoDeduction: this.autoDeduction,
@@ -79,7 +79,7 @@ export class GoalService {
                 const autoDeductionGoals = await Goal.find({
                     autoDeduction: true,
                     userId: this.userId,
-                    status: "InProgress"
+                    status: "in_progress"
                 })
                 for (const goal of autoDeductionGoals) {
                     this.targetAmount = goal.targetAmount
@@ -106,7 +106,7 @@ export class GoalService {
                         const user = await Users.findById(this.userId)
                         const income = user.income * 0.25
                         if (user.netIncome <= income) {
-                            goal.status = "Paused"
+                            goal.status = "no_funds"
                             await goal.save()
                             continue;
                         }
@@ -154,7 +154,7 @@ export class GoalService {
                  _id: goalId, 
                  userId: this.userId, 
                  autoDeduction : false,
-                 status : "InProgress"
+                 status : "in_progress"
             })
             if (!goal) {
                 throw new ApiError(400, "Goal not found Or Deleted")
@@ -182,7 +182,7 @@ export class GoalService {
             }
             const income = user.income * 0.25
             if (user.netIncome <= income) {
-                goal.status = "Paused"
+                goal.status = "no_funds"
                 const saveGoal = await goal.save()
                 return goal
             }
