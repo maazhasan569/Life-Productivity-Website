@@ -101,8 +101,8 @@ const editLoan = asyncHandler(async(res,res) => {
         autoDeduction,
         categary 
     } = req.body 
-    
     const userId = req.user._id
+    const {loanId} = req.params
     const loan = new LoanService(userId , {
         name,
         loanAmt,
@@ -114,7 +114,7 @@ const editLoan = asyncHandler(async(res,res) => {
         categary 
     })
 
-    const updatedLoan = loan.editLoan()
+    const updatedLoan = loan.editLoan(loanId)
 
     return res.status(200)
     .json(
@@ -185,3 +185,16 @@ const deleteLoan = asyncHandler(async(req,res)=> {
         new ApiResponse(200 , "loan successfully deleted" , deleteLoan)
     )
 })
+
+export default {
+    createLoan,
+    getLoanById,
+    getAllLoans,
+    getLoansByCategory,
+    editLoan,
+    loansAmtPaid,
+    loansAmtRemaining,
+    autoDeduction,
+    manualDeduction,
+    deleteLoan
+}
