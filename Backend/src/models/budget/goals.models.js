@@ -31,7 +31,7 @@ const goalsSchema = new mongoose.Schema({
         required : true,
         default : "InProgress",
         enum : {
-            values : ["in_progress" , "Paused","no_funds", "Abondened" , "Achieved"],
+            values : ["in_progress" , "Paused","no_funds", "Abondened" , "Achieved" , "UnAchieved"] ,
             message : "InProgress , Paused , Abondened , Achieved are acceptable"
         }
     },

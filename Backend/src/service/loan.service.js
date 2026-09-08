@@ -87,6 +87,10 @@ export class LoanService {
             if (!loanId) {
                 throw new ApiError(400, "No goal if found")
             }
+
+            if(!isValidObjectId(loanId)){
+                throw new ApiError(400 , "id not valid")
+            }
             this.setTargetDate(duration, frequency)
             this.validateLoan()
             const updateLoan = await Loan.findByIdAndUpdate(
@@ -162,7 +166,7 @@ export class LoanService {
                             loan.status = status
                             await loan.save()
                             if (status === "Completed") {
-                                const deleteLoan = await Loan.findByIdAndDelete(loan._is)
+                                const deleteLoan = await Loan.findByIdAndDelete(loan._id)
                                 await pushToHistory(this.userId, deleteLoan._id, "loans")
                             }
                             continue;
@@ -171,7 +175,7 @@ export class LoanService {
                         const user = await Users.findByIdAndUpdate(this.userId)
                         const income = user.income * 0.25
                         if (user.netIncome <= income) {
-                            loan.status = "Paused"
+                            loan.status = "no_funds"
                             await loan.save()
                             continue;
                         }
@@ -223,10 +227,6 @@ export class LoanService {
             autoDeduction: false,
             status: "in_progress"
         })
-
-        if (!loan) {
-            throw ApiError(400, "Loan not found or deleted")
-        }
 
         this.loanTargetAmt = loan.loanTargetAmt
         this.totalPaid = loan.currentAmt
@@ -285,7 +285,7 @@ export class LoanService {
             const updatedUser = await user.save()
             let deleteLoan;
             if (status === "Completed") {
-                deleteLoan = await Loan.findByIdAndDelete(loan._is)
+                deleteLoan = await Loan.findByIdAndDelete(loan._id)
                 await pushToHistory(this.userId, deleteLoan._id, "loans")
                 return { updatedLoan, updatedUser, pushedToHistory: true }
             }
@@ -293,7 +293,9 @@ export class LoanService {
             return { updatedLoan, updatedUser, pushedToHistory: false }
         }
 
-        return { updatedGoal, updatedUser, pushedToHistory: false }
+        const updatedLoan = await loan.save()
+        const updatedUser = await user.save()
+        return { updatedLoan, updatedUser, pushedToHistory: false }
         }catch(err){
             throw new ApiError(500 , err.message)
         }
@@ -342,7 +344,7 @@ export class LoanService {
          return {totalMissedDeductions , consecutive}
          
          //alert feature will be added in the next version 1.1
-         //loan will have seperate alert field containing an alert msg of the loan
+         //loan model will have seperate alert field containing an alert msg of the loan
 
          
     }

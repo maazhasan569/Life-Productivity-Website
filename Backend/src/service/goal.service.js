@@ -117,7 +117,6 @@ export class GoalService {
                         this.goalBalance += deductAmt
                         this.targetAmount -= deductAmt
 
-                        goal.status = "InProgress"
                         goal.currentAmt = this.goalBalance
                         goal.targetAmount = this.targetAmount
                         user.netIncome -= deductAmt
