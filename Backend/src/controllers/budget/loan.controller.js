@@ -37,7 +37,58 @@ const createLoan = asyncHandler(async (req, res) => {
         new ApiResponse(200 , "loan created" , newLoan)
     )
 })
+const getLoanById = asyncHandler(async (req, res) => {
+    const { loanId } = req.params
+    const userId = req.user._id
+    const getLoan = await Loan.findOne({ _id : loanId, userId })
+    res.status(200)
+        .json(
+            new ApiResponse(200, getGoal ? "Loan fetched" : "Loan not found by Id", getGoal)
+        )
 
+})
+const getAllLoans = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, sortBy, sortType, } = req.query
+    const userId = req.user._id
+    const options = {
+        page,
+        limit,
+        sortBy,
+        sortType,
+        userId
+    }
+
+    const loansData = await paginate(Loan, options)
+    if (!loansData.fetchedDoc.length) {
+        throw new ApiError(404, "Loans not found")
+    }
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "fetched All Loans", loansData)
+        )
+})
+const getLoansByCategory = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10, sortBy, sortType, category } = req.query
+    const userId = req.user._id
+    const options = {
+        page,
+        limit,
+        sortBy: sortBy ,
+        sortType: sortType,
+        category,
+        userId
+    }
+
+    const loansData = await paginate(Loan, options)
+    if (!loansData.fetchedDoc.length) {
+        throw new ApiError(404, "Loans not found")
+    }
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "fetched user Loan by category", loansData)
+        )
+
+})
 const editLoan = asyncHandler(async(res,res) => {
 
     const {
