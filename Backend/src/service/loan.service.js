@@ -1,17 +1,17 @@
-import { Loan } from "../models/budget/loan.models"
-import ApiError from "../utils/ApiError"
-import { Users } from "../models/users.models"
+import { Loan } from "../models/budget/loan.models.js"
+import ApiError from "../utils/ApiError.js"
+import { Users } from "../models/users.models.js"
 import cron from "node-cron"
 import { isValidObjectId } from "mongoose"
-import pushToHistory from "../utils/pushToHistory"
-import { convertToSnakeCase } from "../utils/convertToSnakeCase"
+import pushToHistory from "../utils/pushToHistory.js"
+import { convertToSnakeCase } from "../utils/convertToSnakeCase.js"
 export class LoanService {
     constructor(userId, config = {}) {
         this.userId = userId,
             this.name = config.name,
             this.loanTargetAmt = config.loanTargetAmt,
             this.targetDate = null,
-            this.frequency = config.frequency,
+            this.frequency = config.loanType,
             this.category = config.category,
             this.duration = config.duration,
             this.autoDeduction = config.autoDeduction,
@@ -19,6 +19,7 @@ export class LoanService {
     }
 
     validateLoan() {
+        console.log(this.loanTargetAmt)
         const fieldCheck = [this.name, this.loanTargetAmt, this.frequency, this.duration]
             .some((field) => {
                 if (typeof field === 'string') {
@@ -26,6 +27,7 @@ export class LoanService {
                 }
                 if (!field) return !field
             })
+           
         if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
         }
@@ -36,13 +38,14 @@ export class LoanService {
     }
 
     async createLoan() {
+        
         this.setTargetDate(this.duration, this.frequency)
         this.validateLoan()
         try {
             const newLoan = await Loan.create({
                 userId: this.userId,
                 loanName: this.name,
-                loanAmt: this.loanTargetAmt,
+                loanTargetAmt: this.loanTargetAmt,
                 currentAmt: this.totalPaid,
                 dueDate: this.targetDate,
                 duration: this.duration,

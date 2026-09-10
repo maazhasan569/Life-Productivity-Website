@@ -1,33 +1,31 @@
-import { Loan } from "../../models/budget/loan.models";
-import { LoanService } from "../../service/loan.service";
-import ApiResponse from "../../utils/ApiResponse";
-import asyncHandler from "../../utils/asyncHandler";
-
+import { Loan } from "../../models/budget/loan.models.js";
+import { LoanService } from "../../service/loan.service.js";
+import ApiResponse from "../../utils/ApiResponse.js";
+import asyncHandler from "../../utils/asyncHandler.js";
+import ApiError from "../../utils/ApiError.js";
+import { paginate } from "../../utils/pagination.js";
 
 const createLoan = asyncHandler(async (req, res) => {
 
     const {
         name,
-        loanAmt,
-        currentAmt,
-        dueDate,
+        loanTargetAmt,
         duration,
         loanType,
         autoDeduction,
-        categary 
+        category
     } = req.body 
 
+    console.log(req.body)
     const userId = req.user_id
     
     const loan = new LoanService(userId , {
         name,
-        loanAmt,
-        currentAmt,
-        dueDate,
+        loanTargetAmt,
         duration,
         loanType,
         autoDeduction,
-        categary
+        category
     })
     
     const newLoan = await loan.createLoan()
@@ -43,7 +41,7 @@ const getLoanById = asyncHandler(async (req, res) => {
     const getLoan = await Loan.findOne({ _id : loanId, userId })
     res.status(200)
         .json(
-            new ApiResponse(200, getGoal ? "Loan fetched" : "Loan not found by Id", getGoal)
+            new ApiResponse(200 , getLoan ? "Loan fetched" : "Loan not found by Id", getGoal)
         )
 
 })
@@ -89,7 +87,7 @@ const getLoansByCategory = asyncHandler(async (req, res) => {
         )
 
 })
-const editLoan = asyncHandler(async(res,res) => {
+const editLoan = asyncHandler(async(req,res) => {
 
     const {
         name,
@@ -114,11 +112,11 @@ const editLoan = asyncHandler(async(res,res) => {
         categary 
     })
 
-    const updatedLoan = loan.editLoan(loanId)
+    const updatedLoan = await loan.editLoan(loanId)
 
     return res.status(200)
     .json(
-        new ApiResponse(200 , "Loan updated")
+        new ApiResponse(200 , "Loan updated" , updatedLoan)
     )
 })
 
@@ -186,7 +184,7 @@ const deleteLoan = asyncHandler(async(req,res)=> {
     )
 })
 
-export default {
+export {
     createLoan,
     getLoanById,
     getAllLoans,
