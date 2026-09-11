@@ -100,7 +100,7 @@ export class GoalService {
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
                             await pushToHistory(this.userId, delGoal._id, "goals")
-                            
+
                         }
 
                         const user = await Users.findById(this.userId)
@@ -150,10 +150,10 @@ export class GoalService {
     async manualDeduction(amount, goalId) {
         try {
             const goal = await Goal.findOne({
-                 _id: goalId, 
-                 userId: this.userId, 
-                 autoDeduction : false,
-                 status : "in_progress"
+                _id: goalId,
+                userId: this.userId,
+                autoDeduction: false,
+                status: "in_progress"
             })
             if (!goal) {
                 throw new ApiError(400, "Goal not found Or Deleted")
@@ -189,7 +189,7 @@ export class GoalService {
             this.goalBalance += amount
             this.targetAmount -= amount
 
-            
+
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
@@ -229,8 +229,11 @@ export class GoalService {
             }
             this.setTargetDate(duration, frequency)
             this.validateGoal()
-            const updatedGoal = await Goal.findByIdAndUpdate(
-                goalId,
+            const updatedGoal = await Goal.findOneAndUpdate(
+                {
+                    _id: goalId,
+                    userId: this.userId,
+                },
                 {
                     goalName: this.name,
                     achievmentDate: this.targetDate,
@@ -259,7 +262,7 @@ export class GoalService {
             const updateGoal = await Goal.findOneAndUpdate(
                 { _id: goalId },
                 {
-                    $set: { status: "Abandoned" } 
+                    $set: { status: "Abandoned" }
                 },
                 { returnDocument: 'after' }
             );

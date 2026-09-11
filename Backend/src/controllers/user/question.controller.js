@@ -19,7 +19,7 @@ export const questions = asyncHandler(async (req, res) => {
         throw new ApiError(400 , "all fields are required")
     }
     if (!income > 0 || budget > income) {
-        throw new ApiError(400, "Budget must be below monthly income")
+        throw new ApiError(400, "invalid income Or Budget must be below monthly income")
     }
 
     if(!bankBalance > 0 || bankBalance < income ){

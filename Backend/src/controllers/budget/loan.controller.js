@@ -14,12 +14,12 @@ const createLoan = asyncHandler(async (req, res) => {
         loanType,
         autoDeduction,
         category
-    } = req.body 
+    } = req.body
 
     console.log(req.body)
-    const userId = req.user_id
-    
-    const loan = new LoanService(userId , {
+    const userId = req.user._id
+
+    const loan = new LoanService(userId, {
         name,
         loanTargetAmt,
         duration,
@@ -27,21 +27,21 @@ const createLoan = asyncHandler(async (req, res) => {
         autoDeduction,
         category
     })
-    
+
     const newLoan = await loan.createLoan()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "loan created" , newLoan)
-    )
+        .json(
+            new ApiResponse(200, "loan created", newLoan)
+        )
 })
 const getLoanById = asyncHandler(async (req, res) => {
     const { loanId } = req.params
     const userId = req.user._id
-    const getLoan = await Loan.findOne({ _id : loanId, userId })
+    const getLoan = await Loan.findOne({ _id: loanId, userId })
     res.status(200)
         .json(
-            new ApiResponse(200 , getLoan ? "Loan fetched" : "Loan not found by Id", getGoal)
+            new ApiResponse(200, getLoan ? "Loan fetched" : "Loan not found by Id", getGoal)
         )
 
 })
@@ -71,7 +71,7 @@ const getLoansByCategory = asyncHandler(async (req, res) => {
     const options = {
         page,
         limit,
-        sortBy: sortBy ,
+        sortBy: sortBy,
         sortType: sortType,
         category,
         userId
@@ -87,40 +87,36 @@ const getLoansByCategory = asyncHandler(async (req, res) => {
         )
 
 })
-const editLoan = asyncHandler(async(req,res) => {
+const editLoan = asyncHandler(async (req, res) => {
 
     const {
         name,
-        loanAmt,
-        currentAmt,
-        dueDate,
+        loanTargetAmt,
         duration,
         loanType,
         autoDeduction,
-        categary 
-    } = req.body 
+        category
+    } = req.body
     const userId = req.user._id
-    const {loanId} = req.params
-    const loan = new LoanService(userId , {
+    const { loanId } = req.params
+    const loan = new LoanService(userId, {
         name,
-        loanAmt,
-        currentAmt,
-        dueDate,
+        loanTargetAmt,
         duration,
         loanType,
         autoDeduction,
-        categary 
+        category
     })
 
     const updatedLoan = await loan.editLoan(loanId)
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "Loan updated" , updatedLoan)
-    )
+        .json(
+            new ApiResponse(200, "Loan updated", updatedLoan)
+        )
 })
 
-const loansAmtPaid = asyncHandler(async(req,res)=> {
+const loansAmtPaid = asyncHandler(async (req, res) => {
 
     const userId = req.user._id
 
@@ -128,12 +124,12 @@ const loansAmtPaid = asyncHandler(async(req,res)=> {
     const amtPaid = await loan.amtPaid()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "fetched loan amt paid" , amtPaid)
-    )
+        .json(
+            new ApiResponse(200, "fetched loan amt paid", amtPaid)
+        )
 })
 
-const loansAmtRemaining = asyncHandler(async(req,res)=> {
+const loansAmtRemaining = asyncHandler(async (req, res) => {
 
     const userId = req.user._id
 
@@ -141,47 +137,47 @@ const loansAmtRemaining = asyncHandler(async(req,res)=> {
     const amtRemaining = await loan.amtRemaining()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "fetched loan amt due on user" , amtRemaining)
-    )
+        .json(
+            new ApiResponse(200, "fetched loan amt due on user", amtRemaining)
+        )
 })
 
-const autoDeduction = asyncHandler(async(req,res)=> {
+const autoDeduction = asyncHandler(async (req, res) => {
     const userId = req.user._id
 
     const loan = new LoanService(userId)
     const autoDeductLoamAmt = await loan.autoDeductAmt()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "auto duducted loan amt" , autoDeductLoamAmt)
-    )
+        .json(
+            new ApiResponse(200, "auto duducted loan amt", autoDeductLoamAmt)
+        )
 })
 
-const manualDeduction = asyncHandler(async(req,res)=> {
+const manualDeduction = asyncHandler(async (req, res) => {
     const userId = req.user._id
 
     const loan = new LoanService(userId)
     const manualDeductLoanAmt = await loan.manualDeduction()
 
     return res.status(200)
-    .json(
-        new ApiResponse(200 , "loan amt deducted(manually)" , manualDeductLoanAmt)
-    )
+        .json(
+            new ApiResponse(200, "loan amt deducted(manually)", manualDeductLoanAmt)
+        )
 })
 
-const deleteLoan = asyncHandler(async(req,res)=> {
+const deleteLoan = asyncHandler(async (req, res) => {
     const userId = req.user._id
-    const {loanId} = req.params
-    const {deletionReason} = req.body
+    const { loanId } = req.params
+    const { deletionReason } = req.body
 
     const loan = new LoanService(userId)
-    const deleteLoan = await loan.deleteLoan(loanId , deletionReason)
+    const deleteLoan = await loan.deleteLoan(loanId, deletionReason)
 
     res.status(200)
-    .json(
-        new ApiResponse(200 , "loan successfully deleted" , deleteLoan)
-    )
+        .json(
+            new ApiResponse(200, "loan successfully deleted", deleteLoan)
+        )
 })
 
 export {

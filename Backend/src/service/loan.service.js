@@ -19,7 +19,6 @@ export class LoanService {
     }
 
     validateLoan() {
-        console.log(this.loanTargetAmt)
         const fieldCheck = [this.name, this.loanTargetAmt, this.frequency, this.duration]
             .some((field) => {
                 if (typeof field === 'string') {
@@ -27,7 +26,7 @@ export class LoanService {
                 }
                 if (!field) return !field
             })
-           
+
         if (fieldCheck) {
             throw new ApiError(400, "Enter All fields")
         }
@@ -38,10 +37,11 @@ export class LoanService {
     }
 
     async createLoan() {
-        
+
         this.setTargetDate(this.duration, this.frequency)
         this.validateLoan()
         try {
+            console.log(this.userId)
             const newLoan = await Loan.create({
                 userId: this.userId,
                 loanName: this.name,
@@ -57,7 +57,7 @@ export class LoanService {
             const updateUserBankbalance = await Users.findByIdAndUpdate(
                 this.userId,
                 { $inc: { bankBalance: this.loanTargetAmt } },
-                { new: true }
+                { returnDocument: 'after' }
             )
             return { newLoan, updateUserBankbalance }
         } catch (err) {
@@ -88,18 +88,21 @@ export class LoanService {
     async editLoan(loanId) {
         try {
             if (!loanId) {
-                throw new ApiError(400, "No goal if found")
+                throw new ApiError(400, "No loan if found")
             }
 
-            if(!isValidObjectId(loanId)){
-                throw new ApiError(400 , "id not valid")
+            if (!isValidObjectId(loanId)) {
+                throw new ApiError(400, "id not valid")
             }
-            this.setTargetDate(duration, frequency)
+            this.setTargetDate(this.duration, this.frequency)
             this.validateLoan()
-            const updateLoan = await Loan.findByIdAndUpdate(
-                goalId,
+            
+            const updateLoan = await Loan.findOneAndUpdate(
                 {
-                    userId: this.userId,
+                    _id: loanId,
+                    userId: this.userId 
+                },
+                {
                     loanName: this.name,
                     loanTargetAmt: this.loanTargetAmt,
                     duration: this.duration,
@@ -109,9 +112,13 @@ export class LoanService {
                     autoDeduction: this.autoDeduction,
                     category: this.category
                 },
-                { new: true }
-            )
-            return updateLoan
+                { returnDocument: after}
+            );
+
+            if(!updateLoan){
+                throw new ApiError(400 , "User loan not found")
+            }
+            return updateLoan;
         } catch (err) {
             throw new ApiError(400, err.message)
         }
@@ -147,7 +154,7 @@ export class LoanService {
                 })
 
                 for (const loan of autoDeductionLoans) {
-                    
+
                     this.loanTargetAmt = loan.loanTargetAmt
                     this.totalPaid = loan.currentAmt
                     this.duration = loan.duration
@@ -223,133 +230,133 @@ export class LoanService {
             throw new ApiError(400, "Invalid loanid")
         }
 
-        try{
+        try {
             const loan = await Loan.findOne({
-            _id: loanId,
-            userId: this.userId,
-            autoDeduction: false,
-            status: "in_progress"
-        })
+                _id: loanId,
+                userId: this.userId,
+                autoDeduction: false,
+                status: "in_progress"
+            })
 
-        this.loanTargetAmt = loan.loanTargetAmt
-        this.totalPaid = loan.currentAmt
-        this.duration = loan.duration
-        this.autoDeduction = loan.autoDeduction
-        this.frequency = loan.type
-        this.category = loan.category
-        this.name = loan.name
+            this.loanTargetAmt = loan.loanTargetAmt
+            this.totalPaid = loan.currentAmt
+            this.duration = loan.duration
+            this.autoDeduction = loan.autoDeduction
+            this.frequency = loan.type
+            this.category = loan.category
+            this.name = loan.name
 
-        const lastDeductionIdx = loan.deductionDates.length - 1
-        let deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
-        const lastMonth = loan.deductionDates[lastDeductionIdx]?.getMonth()
-        const thisMonth = new Date().getMonth()
-        if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
+            const lastDeductionIdx = loan.deductionDates.length - 1
+            let deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
+            const lastMonth = loan.deductionDates[lastDeductionIdx]?.getMonth()
+            const thisMonth = new Date().getMonth()
+            if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
 
-        if (!amount || amount < 0) {
-            throw new ApiError(400, "Enter a valid amount")
-        }
-
-        if (amount > this.loanTargetAmt) {
-            throw new ApiError(400, "Amount cant be more than targetAmt")
-        }
-
-        const user = await Users.findById(this.userId)
-        if (amount > user.netIncome) {
-            throw new ApiError(400, "Amount to large . netIncome not enough")
-        }
-
-        const income = user.income * 0.25
-        if (user.netIncome <= income) {
-            loan.status = "no_funds"
-            const saveloan = await loan.save()
-            return saveloan
-        }
-
-
-        this.totalPaid += amount
-        this.loanTargetAmt -= amount
-
-        loan.loanTargetAmt = this.loanTargetAmt
-        loan.currentAmt = this.totalPaid
-        loan.deductionDates.append(new Date())
-        loan.totalDeductions += 1
-        user.netIncome -= amount
-
-        if (this.loanTargetAmt === 0 && deadlineInMonths !== 0) {
-            deadlineInMonths = 0
-        }
-
-        if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
-            const status = this.loanTargetAmt !== 0 ?
-                "Overdue" : "Completed";
-
-            loan.status = status
-            const updatedLoan = await loan.save()
-            const updatedUser = await user.save()
-            let deleteLoan;
-            if (status === "Completed") {
-                deleteLoan = await Loan.findByIdAndDelete(loan._id)
-                await pushToHistory(this.userId, deleteLoan._id, "loans")
-                return { updatedLoan, updatedUser, pushedToHistory: true }
+            if (!amount || amount < 0) {
+                throw new ApiError(400, "Enter a valid amount")
             }
 
-            return { updatedLoan, updatedUser, pushedToHistory: false }
-        }
+            if (amount > this.loanTargetAmt) {
+                throw new ApiError(400, "Amount cant be more than targetAmt")
+            }
 
-        const updatedLoan = await loan.save()
-        const updatedUser = await user.save()
-        return { updatedLoan, updatedUser, pushedToHistory: false }
-        }catch(err){
-            throw new ApiError(500 , err.message)
+            const user = await Users.findById(this.userId)
+            if (amount > user.netIncome) {
+                throw new ApiError(400, "Amount to large . netIncome not enough")
+            }
+
+            const income = user.income * 0.25
+            if (user.netIncome <= income) {
+                loan.status = "no_funds"
+                const saveloan = await loan.save()
+                return saveloan
+            }
+
+
+            this.totalPaid += amount
+            this.loanTargetAmt -= amount
+
+            loan.loanTargetAmt = this.loanTargetAmt
+            loan.currentAmt = this.totalPaid
+            loan.deductionDates.append(new Date())
+            loan.totalDeductions += 1
+            user.netIncome -= amount
+
+            if (this.loanTargetAmt === 0 && deadlineInMonths !== 0) {
+                deadlineInMonths = 0
+            }
+
+            if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
+                const status = this.loanTargetAmt !== 0 ?
+                    "Overdue" : "Completed";
+
+                loan.status = status
+                const updatedLoan = await loan.save()
+                const updatedUser = await user.save()
+                let deleteLoan;
+                if (status === "Completed") {
+                    deleteLoan = await Loan.findByIdAndDelete(loan._id)
+                    await pushToHistory(this.userId, deleteLoan._id, "loans")
+                    return { updatedLoan, updatedUser, pushedToHistory: true }
+                }
+
+                return { updatedLoan, updatedUser, pushedToHistory: false }
+            }
+
+            const updatedLoan = await loan.save()
+            const updatedUser = await user.save()
+            return { updatedLoan, updatedUser, pushedToHistory: false }
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
 
     }
 
-    async pauseLoan(loanId , undoAlertOrUnBlockLoan = false) {
-         //get the lastdeduction array
-         //loop over each element
-         //check if there a time of the month where user hasnot paid for 3 or more months
-         //if yes set consecutive = true
-         //if not give a normal alert 
-         //also return no. of consecutive miss deduction
+    async pauseLoan(loanId, undoAlertOrUnBlockLoan = false) {
+        //get the lastdeduction array
+        //loop over each element
+        //check if there a time of the month where user hasnot paid for 3 or more months
+        //if yes set consecutive = true
+        //if not give a normal alert 
+        //also return no. of consecutive miss deduction
 
-         let consecutive = false
-         let totalMissedDeductions;
+        let consecutive = false
+        let totalMissedDeductions;
 
-         const loan = await Loan.findById(loanId)
+        const loan = await Loan.findById(loanId)
 
-         if(undoAlertOrUnBlockLoan){
-         if(loan.status === "Paused") loan.status = "in_progress"
+        if (undoAlertOrUnBlockLoan) {
+            if (loan.status === "Paused") loan.status = "in_progress"
             return
-         }
-         
-         const dates = loan.deductionDates
-         loan.deductionDates.forEach((elem , idx) => {
+        }
+
+        const dates = loan.deductionDates
+        loan.deductionDates.forEach((elem, idx) => {
             const prevDeduction = dates[idx].getMonth()
             const nextDeduction = dates[idx + 1].getMonth()
             const monthsDiff = nextDeduction - prevDeduction
-            
-           if(monthsDiff >= 3){
-            loan.status = "Paused"
-            totalMissedDeductions = monthsDiff
-            consecutive = true
 
-           }else if (monthsDiff > 1 && monthsDiff < 3){
-            loan.status = "Paused"
-            totalMissedDeductions = monthsDiff
-            consecutive = false
+            if (monthsDiff >= 3) {
+                loan.status = "Paused"
+                totalMissedDeductions = monthsDiff
+                consecutive = true
 
-           }
-         })
+            } else if (monthsDiff > 1 && monthsDiff < 3) {
+                loan.status = "Paused"
+                totalMissedDeductions = monthsDiff
+                consecutive = false
 
-         await loan.save()
+            }
+        })
 
-         return {totalMissedDeductions , consecutive}
-         
-         //alert feature will be added in the next version 1.1
-         //loan model will have seperate alert field containing an alert msg of the loan
+        await loan.save()
 
-         
+        return { totalMissedDeductions, consecutive }
+
+        //alert feature will be added in the next version 1.1
+        //loan model will have seperate alert field containing an alert msg of the loan
+
+
     }
     async deleteLoan(loanId, deletionReason) {
 
