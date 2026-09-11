@@ -126,6 +126,12 @@ export class LoanService {
     async amtPaid() {
         try {
             const userLoans = await Loan.find({ userId: this.userId })
+            const userHistoryData = await History.findOne({userId : this.userId})
+
+            for(let i = 0 ; i < userHistoryData.loans.length ; i++ ){
+                
+            }
+            
             if (!userLoans) return 0
             const totalPaid = userLoans.reduce((sum, loan) => sum + loan.currentAmt, 0)
             return totalPaid
@@ -176,7 +182,6 @@ export class LoanService {
                             loan.status = status
                             await loan.save()
                             if (status === "Completed") {
-                                const deleteLoan = await Loan.findByIdAndDelete(loan._id)
                                 await pushToHistory(this.userId, deleteLoan._id, "loans")
                             }
                             continue;
@@ -291,10 +296,8 @@ export class LoanService {
                 loan.status = status
                 const updatedLoan = await loan.save()
                 const updatedUser = await user.save()
-                let deleteLoan;
                 if (status === "Completed") {
-                    deleteLoan = await Loan.findByIdAndDelete(loan._id)
-                    await pushToHistory(this.userId, deleteLoan._id, "loans")
+                    await pushToHistory(this.userId, loan._id, "loans")
                     return { updatedLoan, updatedUser, pushedToHistory: true }
                 }
 

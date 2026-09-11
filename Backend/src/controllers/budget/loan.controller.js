@@ -41,7 +41,7 @@ const getLoanById = asyncHandler(async (req, res) => {
     const getLoan = await Loan.findOne({ _id: loanId, userId })
     res.status(200)
         .json(
-            new ApiResponse(200, getLoan ? "Loan fetched" : "Loan not found by Id", getGoal)
+            new ApiResponse(200, getLoan ? "Loan fetched" : "Loan not found by Id", getLoan)
         )
 
 })
