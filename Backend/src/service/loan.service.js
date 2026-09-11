@@ -376,14 +376,14 @@ export class LoanService {
                 "other"
             ]
 
-            if (!validReasons.includes(userReason)) {
-                throw new ApiError(400, "Invalid loan deletion reason")
-            }
-
-            const loan = await Loan.findById(loanId)
+            const loan = await Loan.findOne({_id : loanId , userId : this.userId})
             if (!loan) {
                 throw new ApiError(400, "Loan not found")
             }
+            if (!validReasons.includes(userReason)) {
+                throw new ApiError(400, "Invalid loan deletion reason")
+            }
+            
             const updatedUserBankBalance = await Users.findByIdAndUpdate(
                 this.userId,
                 {
