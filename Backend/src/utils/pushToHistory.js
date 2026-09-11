@@ -1,6 +1,5 @@
 import { History } from "../models/history.models.js";
 const pushToHistory = async (userId, delItmId, field) => {
-    console.log("2")
     const isUserHistory = await History.findOne({ userId, })
     const history = isUserHistory
         ? isUserHistory[field] = [...isUserHistory[field] || [], delItmId]

@@ -4,7 +4,7 @@ import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 
 export const questions = asyncHandler(async (req, res) => {
-    const { identity, currency, income, budget , bankBalance  } = req.body
+    const { identity, currency, income, budget , bankBalance } = req.body
     const fieldCheck = [identity, currency, income, budget , bankBalance].some((fields) => {
         if (fields == null || fields === "") return true;
     
@@ -12,20 +12,19 @@ export const questions = asyncHandler(async (req, res) => {
     if (typeof fields === "string") {
         return fields.trim() === "";
     }
-
-    return false;
+    
+    if (!fields) return !fields
     })
     if(fieldCheck){
         throw new ApiError(400 , "all fields are required")
     }
-    
-    if(!(bankBalance > 0) || bankBalance < income ){
-        throw new ApiError(400 , "Invalid bankbalance")
+    if (!income > 0 || budget > income) {
+        throw new ApiError(400, "invalid income Or Budget must be below monthly income")
     }
-    if (budget > income) {
-        throw new ApiError(400, "Budget must be below monthly income")
+
+    if(!bankBalance > 0 || bankBalance < income ){
+        throw new ApiError(400 , "Invalid Bank Balance")
     }
-    console.log(req.user)
 
     const saveCredentials = await Users.findByIdAndUpdate(
         req.user._id,
@@ -34,8 +33,8 @@ export const questions = asyncHandler(async (req, res) => {
             currency,
             income,
             netIncome : income - budget,
-            budget
-
+            budget,
+            bankBalance,
         },
         { new: true }
     )

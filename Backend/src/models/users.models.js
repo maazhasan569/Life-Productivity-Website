@@ -31,6 +31,9 @@ const usersSchema = new mongoose.Schema({
         sparse: true
 
     },
+    bankBalance : {
+        type : Number,
+    },
     email: {
         type: String,
         unique: true,
@@ -46,8 +49,6 @@ const usersSchema = new mongoose.Schema({
     publicId: {
         type: String,
     },
-
-
     refreshToken: {
         type: String,
         default: null,

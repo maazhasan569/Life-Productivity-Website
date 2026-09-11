@@ -43,11 +43,11 @@ export class GoalService {
                 goalName: this.name,
                 achievementDate: this.targetDate,
                 targetAmount: this.targetAmount,
-                status: "InProgress",
+                status: "in_progress",
                 type: this.frequency,
                 duration: this.duration,
                 autoDeduction: this.autoDeduction,
-                category: this.category
+                category: this.category,
 
             })
             return newGoal
@@ -78,8 +78,12 @@ export class GoalService {
     async autoDeductAmount() {
         try {
             cron.schedule('0 0 * * *', async () => {
-                const today = new Date().getDate()
-                const autoDeductionGoals = await Goal.find({ autoDeduction: true, userId: this.userId , status : "InProgress" })
+                const today = new Date()
+                const autoDeductionGoals = await Goal.find({
+                    autoDeduction: true,
+                    userId: this.userId,
+                    status: "in_progress"
+                })
                 for (const goal of autoDeductionGoals) {
                     this.targetAmount = goal.targetAmount
                     this.goalBalance = goal.currentAmt
@@ -105,7 +109,7 @@ export class GoalService {
                         const user = await Users.findById(this.userId)
                         const income = user.income * 0.25
                         if (user.netIncome <= income) {
-                            goal.status = "Paused"
+                            goal.status = "no_funds"
                             await goal.save()
                             continue;
                         }
@@ -116,7 +120,6 @@ export class GoalService {
                         this.goalBalance += deductAmt
                         this.targetAmount -= deductAmt
 
-                        goal.status = "InProgress"
                         goal.currentAmt = this.goalBalance
                         goal.targetAmount = this.targetAmount
                         user.netIncome -= deductAmt
@@ -143,9 +146,14 @@ export class GoalService {
     }
     async manualDeduction(amount, goalId) {
         try {
-            const goal = await Goal.findOne({ _id: goalId, userId: this.userId })
-            if(!goal){
-                throw new ApiError(400 , "Goal not found Or Deleted")
+            const goal = await Goal.findOne({
+                _id: goalId,
+                userId: this.userId,
+                autoDeduction: false,
+                status: "in_progress"
+            })
+            if (!goal) {
+                throw new ApiError(400, "Goal not found Or Deleted")
             }
             this.targetAmount = goal.targetAmount
             this.goalBalance = goal.currentAmt
@@ -161,24 +169,24 @@ export class GoalService {
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
-            if(amount > this.targetAmount){
-                throw new ApiError(400 , "Amount cant be more than targetAmt")
+            if (amount > this.targetAmount) {
+                throw new ApiError(400, "Amount cant be more than targetAmt")
             }
             const user = await Users.findById(this.userId)
-            if(amount > user.netIncome){
-                throw new ApiError(400 , "netIncome not enough")
+            if (amount > user.netIncome) {
+                throw new ApiError(400, "Amount to large . netIncome not enough")
             }
             const income = user.income * 0.25
             if (user.netIncome <= income) {
-                goal.status = "Paused"
-                const goal = await goal.save()
+                goal.status = "no_funds"
+                const saveGoal = await goal.save()
                 return goal
             }
 
             this.goalBalance += amount
             this.targetAmount -= amount
 
-            goal.status = "InProgress"
+
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
@@ -193,17 +201,16 @@ export class GoalService {
                 this.targetAmount !== 0 ?
                     goal.status = "UnAchieved" : goal.status = "Achieved"
                 const updatedGoal = await goal.save()
-                console.log("goal saved")
                 const delGoal = await Goal.findByIdAndDelete(goal._id)
                 await pushToHistory(this.userId, delGoal._id, "goals")
                 const updatedUser = await user.save()
-                return { updatedGoal, updatedUser , pushedToHistory : true }
+                return { updatedGoal, updatedUser, pushedToHistory: true }
                 // if passed automaticly push the goal to history
             }
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
-            return { updatedGoal, updatedUser , pushedToHistory : false }
+            return { updatedGoal, updatedUser, pushedToHistory: false }
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -217,9 +224,13 @@ export class GoalService {
             if (!goalId) {
                 throw new ApiError(400, "No goal id found")
             }
+            this.setTargetDate(duration, frequency)
             this.validateGoal()
-            const updatedGoal = await Goal.findByIdAndUpdate(
-                goalId,
+            const updatedGoal = await Goal.findOneAndUpdate(
+                {
+                    _id: goalId,
+                    userId: this.userId,
+                },
                 {
                     goalName: this.name,
                     achievmentDate: this.targetDate,
@@ -248,16 +259,16 @@ export class GoalService {
             const updateGoal = await Goal.findOneAndUpdate(
                 { _id: goalId },
                 {
-                    $set: { status: "Abandoned" } // Fixed spelling and added $set
+                    $set: { status: "Abandoned" }
                 },
                 { returnDocument: 'after' }
             );
             if (!updateGoal) return null
+            const deletedGoal = await Goal.findByIdAndDelete(goalId)
+            const history = await pushToHistory(this.userId, deletedGoal._id, "goals")
             const user = await Users.findById(this.userId)
             user.netIncome += updateGoal.currentAmt
             const updatedUser = await user.save()
-            const deletedGoal = await Goal.findByIdAndDelete(goalId)
-            const history = await pushToHistory(this.userId, deletedGoal._id, "goals")
             const updatedUserNetIncome = updatedUser.netIncome
             return { updatedUserNetIncome, deletedGoal, history }
 

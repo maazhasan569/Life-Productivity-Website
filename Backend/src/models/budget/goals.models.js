@@ -15,6 +15,9 @@ const goalsSchema = new mongoose.Schema({
         type : Date,
         required : true
     },
+    duration :{
+        type : Number,
+    },
     targetAmount :{
         type : Number,
         required : true
@@ -28,7 +31,7 @@ const goalsSchema = new mongoose.Schema({
         required : true,
         default : "InProgress",
         enum : {
-            values : ["InProgress" , "Paused", "Abondened" , "Achieved"],
+            values : ["in_progress" , "Paused","no_funds", "Abondened" , "Achieved" , "UnAchieved"] ,
             message : "InProgress , Paused , Abondened , Achieved are acceptable"
         }
     },
