@@ -156,9 +156,10 @@ const autoDeduction = asyncHandler(async (req, res) => {
 
 const manualDeduction = asyncHandler(async (req, res) => {
     const userId = req.user._id
-
+    const {loanId} = req.params
+    const {amount} = req.body
     const loan = new LoanService(userId)
-    const manualDeductLoanAmt = await loan.manualDeduction()
+    const manualDeductLoanAmt = await loan.manualDeduction(amount , loanId)
 
     return res.status(200)
         .json(

@@ -170,7 +170,7 @@ export class LoanService {
                         if (lastMonth === thisMonth) continue;
 
                         if (loan.totalDeductions === this.duration) {
-                            const status = this.loanTargetAmt !== 0 ?
+                            const status = this.loanTargetAmt === this.totalPaid ?
                                 "Overdue" : "Completed"
 
                             loan.status = status
@@ -193,12 +193,10 @@ export class LoanService {
                         const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
                         const deductAmt = (this.loanTargetAmt - this.totalPaid) / deadlineInMonths
                         this.totalPaid += deductAmt
-                        this.loanTargetAmt -= deductAmt
 
                         loan.currentAmt = this.totalPaid
-                        loan.loanTargetAmt = this.loanTargetAmt
                         user.netIncome -= deductAmt
-                        loan.deductionDates.append(new Date)
+                        loan.deductionDates.push(new Date)
                         loan.totalDeductions += 1
 
                         const orgDate = new Date(loan.createdAt).getDate()
@@ -238,6 +236,9 @@ export class LoanService {
                 status: "in_progress"
             })
 
+            if(!loan){
+                throw new ApiError(400 , "loan not found. this could be an autodeduction goal")
+            }
             this.loanTargetAmt = loan.loanTargetAmt
             this.totalPaid = loan.currentAmt
             this.duration = loan.duration
@@ -253,7 +254,7 @@ export class LoanService {
             if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
 
             if (!amount || amount < 0) {
-                throw new ApiError(400, "Enter a valid amount")
+                throw new ApiError(400, "Enter not given or Invalid amount")
             }
 
             if (amount > this.loanTargetAmt) {
@@ -274,21 +275,18 @@ export class LoanService {
 
 
             this.totalPaid += amount
-            this.loanTargetAmt -= amount
-
-            loan.loanTargetAmt = this.loanTargetAmt
             loan.currentAmt = this.totalPaid
-            loan.deductionDates.append(new Date())
+            loan.deductionDates.push(new Date())
             loan.totalDeductions += 1
             user.netIncome -= amount
 
-            if (this.loanTargetAmt === 0 && deadlineInMonths !== 0) {
+            if (this.loanTargetAmt === this.totalPaid && deadlineInMonths !== 0) {
                 deadlineInMonths = 0
             }
 
             if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
-                const status = this.loanTargetAmt !== 0 ?
-                    "Overdue" : "Completed";
+                const status = this.loanTargetAmt !== this.totalPaid ? 
+                "Overdue" : "Completed"
 
                 loan.status = status
                 const updatedLoan = await loan.save()

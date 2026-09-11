@@ -49,8 +49,6 @@ const usersSchema = new mongoose.Schema({
     publicId: {
         type: String,
     },
-
-
     refreshToken: {
         type: String,
         default: null,
