@@ -298,7 +298,7 @@ export class GoalService {
         }
     }
 
-    async setunachievedStatus() {
+    async setUnachievedStatus() {
         try {
 
                 const goals = await Goal.find(this.userId)

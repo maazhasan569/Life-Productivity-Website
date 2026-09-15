@@ -417,3 +417,4 @@ export class LoanService {
             throw new ApiError(500 , err.message)
         }
 }
+}
