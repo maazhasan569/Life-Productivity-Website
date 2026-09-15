@@ -6,9 +6,16 @@ const taskSchema = new mongoose.Schema({
         ref : "Users", 
         required : true
     },
-    taskName : {
+    name : {
         type : String,
         required : true,
+    },
+    description : {
+        type : String,
+    },
+    category : {
+        type : String,
+        default : "General"
     },
     status : {
         type : String,
