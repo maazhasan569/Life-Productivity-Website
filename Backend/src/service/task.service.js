@@ -1,6 +1,7 @@
 import ApiError from "../utils/ApiError"
 import { Task } from "../models/dailyLife/task.models"
 import { isValidObjectId } from "mongoose"
+import pushToHistory from "../utils/pushToHistory"
 class TaskService{
     constructor(userId ,config = {}){
         this.userId = userId
@@ -19,7 +20,8 @@ class TaskService{
             userId : this.userId,
             name : this.taskName,
             description : this.taskDescription,
-            category : this.category
+            category : this.category,
+            status : "in_progress"
             //document and due date to be added
         })
         return newTask
@@ -57,5 +59,31 @@ class TaskService{
             throw new ApiError(500 , err.message)
         }
     }
+
+     async delTask(taskId){
+         if(!taskId){
+            throw new ApiError(400 , "task id not found")
+        }
+
+        if(!isValidObjectId(taskId)){
+            throw new ApiError(400 , "Invalid task id")
+        }
+
+        try{
+           const deletedTask = await Task.findByIdAndDelete(taskId)
+            if(deletedTask.status === 'Completed'){
+                const pushToHistory = await pushToHistory(this.userId , deletedTask._id , "tasks")
+                return {deletedTask , pushToHistory : true}
+            }   
+             return {deletedTask , pushToHistory : false}
+            
+            
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
+        
+    }
+
 }
 
+   
