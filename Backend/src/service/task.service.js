@@ -29,6 +29,7 @@ class TaskService{
     }
 
     async editTask(taskId){
+
         if(!taskId){
             throw new ApiError(400 , "task id not found")
         }
@@ -36,5 +37,25 @@ class TaskService{
         if(!isValidObjectId(taskId)){
             throw new ApiError(400 , "Invalid task id")
         }
+        try{
+            
+            if(!this.taskName){
+                throw new ApiError(400 , "task name is required")
+            }
+        const updatedTask = await Task.findOneAndUpdate(
+            {_id : taskId},
+            {
+                name : this.name,
+                description : this.taskDescription,
+                category : this.category
+            },
+            {returnDocument : 'after'}
+        ) 
+
+        return updatedTask
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
     }
 }
+
