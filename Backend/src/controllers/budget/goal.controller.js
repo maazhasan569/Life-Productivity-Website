@@ -48,7 +48,8 @@ const getAllGoals = asyncHandler(async (req, res) => {
         sortType,
         userId
     }
-
+    const goal = new GoalService(userId)
+    await goal.update
     const goalsData = await paginate(Goal, options)
     if (!goalsData.fetchedDoc.length) {
         throw new ApiError(404, "Goals not found")

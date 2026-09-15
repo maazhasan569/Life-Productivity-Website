@@ -97,6 +97,14 @@ export class GoalService {
                         const lastMonth = goal.lastDeduction?.getMonth()
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
+                        if (goal.totalDeductions === this.duration) {
+                            if(this.targetAmount === 0 ) goal.status = "Achieved"
+                            await goal.save()
+                            const delGoal = await Goal.findByIdAndDelete(goal._id)
+                            await pushToHistory(this.userId, delGoal._id, "goals")
+                            continue;
+                        }
+
                         const user = await Users.findById(this.userId)
                         const income = user.income * 0.25
                         if (user.netIncome <= income) {
@@ -104,6 +112,7 @@ export class GoalService {
                             await goal.save()
                             continue;
                         }
+
 
                         const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
                         const deductAmt = (this.targetAmount - this.goalBalance) / deadlineInMonths
@@ -175,13 +184,27 @@ export class GoalService {
 
             this.goalBalance += amount
             this.targetAmount -= amount
+
+
             goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
             goal.totalDeductions += 1
             user.netIncome -= amount
 
-           
+            if (this.targetAmount === 0 && deadlineInMonths !== 0) {
+                deadlineInMonths = 0
+            }
+            // as soon as user payes his monthly goal check whether the cond passes
+            if (goal.totalDeductions + 1 > deadlineInMonths || goal.totalDeductions + 1 === this.duration) {
+                if(this.targetAmount === 0) goal.status = "Achieved"
+                const updatedGoal = await goal.save()
+                const delGoal = await Goal.findByIdAndDelete(goal._id)
+                await pushToHistory(this.userId, delGoal._id, "goals")
+                const updatedUser = await user.save()
+                return { updatedGoal, updatedUser, pushedToHistory: true }
+                // if passed automaticly push the goal to history
+            }
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
@@ -273,22 +296,18 @@ export class GoalService {
         }
     }
 
-    async setGoalStatus() {
+    async setOverDueStatus() {
         try {
-            cron.schedule('0 0 * * *', async () => {
+
                 const goals = await Goal.find(this.userId)
                 for (const goal of goals) {
                     if (goal.totalDeductions === this.duration) {
-                        this.targetAmount !== 0 ?
-                            goal.status = "UnAchieved" : goal.status = "Achieved"
+                       if(this.targetAmount !== 0) goal.status = "UnAchieved"
                         const updatedGoal = await goal.save()
-                        const delGoal = await Goal.findByIdAndDelete(goal._id)
-                        await pushToHistory(this.userId, delGoal._id, "goals")
                         return updatedGoal
                     }
 
                 }
-            })
         }catch(err){
             throw new ApiError(500 , err.message)
         }
