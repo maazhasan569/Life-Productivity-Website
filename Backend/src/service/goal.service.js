@@ -98,10 +98,12 @@ export class GoalService {
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
                         if (goal.totalDeductions === this.duration) {
-                            if(this.targetAmount === 0 ) goal.status = "Achieved"
+                            if(this.targetAmount === 0 ) {
+                            goal.status = "Achieved"
                             await goal.save()
                             const delGoal = await Goal.findByIdAndDelete(goal._id)
                             await pushToHistory(this.userId, delGoal._id, "goals")
+                            }
                             continue;
                         }
 
@@ -296,7 +298,7 @@ export class GoalService {
         }
     }
 
-    async setOverDueStatus() {
+    async setunachievedStatus() {
         try {
 
                 const goals = await Goal.find(this.userId)
@@ -312,6 +314,7 @@ export class GoalService {
             throw new ApiError(500 , err.message)
         }
     }
+
 }
 
 

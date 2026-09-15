@@ -96,11 +96,11 @@ export class LoanService {
             }
             this.setTargetDate(this.duration, this.frequency)
             this.validateLoan()
-            
+
             const updateLoan = await Loan.findOneAndUpdate(
                 {
                     _id: loanId,
-                    userId: this.userId 
+                    userId: this.userId
                 },
                 {
                     loanName: this.name,
@@ -112,11 +112,11 @@ export class LoanService {
                     autoDeduction: this.autoDeduction,
                     category: this.category
                 },
-                { returnDocument: after}
+                { returnDocument: after }
             );
 
-            if(!updateLoan){
-                throw new ApiError(400 , "User loan not found")
+            if (!updateLoan) {
+                throw new ApiError(400, "User loan not found")
             }
             return updateLoan;
         } catch (err) {
@@ -126,12 +126,12 @@ export class LoanService {
     async amtPaid() {
         try {
             const userLoans = await Loan.find({ userId: this.userId })
-            const userHistoryData = await History.findOne({userId : this.userId})
+            const userHistoryData = await History.findOne({ userId: this.userId })
 
-            for(let i = 0 ; i < userHistoryData.loans.length ; i++ ){
-                
+            for (let i = 0; i < userHistoryData.loans.length; i++) {
+
             }
-            
+
             if (!userLoans) return 0
             const totalPaid = userLoans.reduce((sum, loan) => sum + loan.currentAmt, 0)
             return totalPaid
@@ -176,12 +176,10 @@ export class LoanService {
                         if (lastMonth === thisMonth) continue;
 
                         if (loan.totalDeductions === this.duration) {
-                            const status = this.loanTargetAmt === this.totalPaid ?
-                                "Overdue" : "Completed"
-
-                            loan.status = status
-                            await loan.save()
-                            if (status === "Completed") {
+                            if (this.loanTargetAmt === this.totalPaid) {
+                                loan.status = "Completed"
+                                const loan = await loan.save()
+                                const deleteLoan = await Loan.findById(loan._id)
                                 await pushToHistory(this.userId, deleteLoan._id, "loans")
                             }
                             continue;
@@ -241,8 +239,8 @@ export class LoanService {
                 status: "in_progress"
             })
 
-            if(!loan){
-                throw new ApiError(400 , "loan not found. this could be an autodeduction goal")
+            if (!loan) {
+                throw new ApiError(400, "loan not found. this could be an autodeduction goal")
             }
             this.loanTargetAmt = loan.loanTargetAmt
             this.totalPaid = loan.currentAmt
@@ -290,8 +288,8 @@ export class LoanService {
             }
 
             if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
-                const status = this.loanTargetAmt !== this.totalPaid ? 
-                "Overdue" : "Completed"
+                const status = this.loanTargetAmt !== this.totalPaid ?
+                    "Overdue" : "Completed"
 
                 loan.status = status
                 const updatedLoan = await loan.save()
@@ -379,14 +377,14 @@ export class LoanService {
                 "other"
             ]
 
-            const loan = await Loan.findOne({_id : loanId , userId : this.userId})
+            const loan = await Loan.findOne({ _id: loanId, userId: this.userId })
             if (!loan) {
                 throw new ApiError(400, "Loan not found")
             }
             if (!validReasons.includes(userReason)) {
                 throw new ApiError(400, "Invalid loan deletion reason")
             }
-            
+
             const updatedUserBankBalance = await Users.findByIdAndUpdate(
                 this.userId,
                 {
@@ -400,4 +398,22 @@ export class LoanService {
             throw new ApiError(400, err.message)
         }
     }
+
+    async setOverdueStatus() {
+        try {
+
+            const loans = await Loan.find(this.userId)
+            for (const loan of loans) {
+                if (loan.totalDeductions === this.duration) {
+                    if (this.loanTargetAmt !== 0) {
+                        loan.status = "Overdue"
+                        const updatedLoan = await loan.save()
+                        return updatedLoan
+                    }
+
+                }
+            }
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
 }
