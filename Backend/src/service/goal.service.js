@@ -98,10 +98,9 @@ export class GoalService {
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
                         if (goal.totalDeductions === this.duration) {
-                            if(this.targetAmount === 0 ) {
+                            if(this.targetAmount === this.goalBalance) {
                             goal.status = "Achieved"
                             await goal.save()
-                            const delGoal = await Goal.findByIdAndDelete(goal._id)
                             await pushToHistory(this.userId, delGoal._id, "goals")
                             }
                             continue;
@@ -119,10 +118,7 @@ export class GoalService {
                         const deadlineInMonths = this.getDeadlineTime(this.duration, this.frequency)
                         const deductAmt = (this.targetAmount - this.goalBalance) / deadlineInMonths
                         this.goalBalance += deductAmt
-                        this.targetAmount -= deductAmt
-
                         goal.currentAmt = this.goalBalance
-                        goal.targetAmount = this.targetAmount
                         user.netIncome -= deductAmt
                         goal.lastDeduction = new Date()
                         goal.totalDeductions += 1
@@ -167,6 +163,19 @@ export class GoalService {
             const lastMonth = goal.lastDeduction?.getMonth()
             const thisMonth = new Date().getMonth()
             if (lastMonth === thisMonth) throw new ApiError(400, "Goal monthly amt already paid")
+             if (this.targetAmount === 0 && deadlineInMonths !== 0) {
+                deadlineInMonths = 0
+            }
+            // as soon as user payes his monthly goal check whether the cond passes
+            if (goal.totalDeductions + 1 > deadlineInMonths || goal.totalDeductions + 1 === this.duration) {
+                if(this.targetAmount !== this.goalBalance) throw new ApiError(400 , "Loan overdued")
+                
+                goal.status = "Achieved"
+                const updatedGoal = await goal.save()
+                await pushToHistory(this.userId, delGoal._id, "goals")
+                return { updatedGoal, pushedToHistory: true }
+                // if passed automaticly push the goal to history
+            }
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter a valid amount")
             }
@@ -185,28 +194,12 @@ export class GoalService {
             }
 
             this.goalBalance += amount
-            this.targetAmount -= amount
-
-
-            goal.targetAmount = this.targetAmount
             goal.currentAmt = this.goalBalance
             goal.lastDeduction = new Date()
             goal.totalDeductions += 1
             user.netIncome -= amount
 
-            if (this.targetAmount === 0 && deadlineInMonths !== 0) {
-                deadlineInMonths = 0
-            }
-            // as soon as user payes his monthly goal check whether the cond passes
-            if (goal.totalDeductions + 1 > deadlineInMonths || goal.totalDeductions + 1 === this.duration) {
-                if(this.targetAmount === 0) goal.status = "Achieved"
-                const updatedGoal = await goal.save()
-                const delGoal = await Goal.findByIdAndDelete(goal._id)
-                await pushToHistory(this.userId, delGoal._id, "goals")
-                const updatedUser = await user.save()
-                return { updatedGoal, updatedUser, pushedToHistory: true }
-                // if passed automaticly push the goal to history
-            }
+           
             const updatedGoal = await goal.save()
             const updatedUser = await user.save()
 
@@ -314,8 +307,6 @@ export class GoalService {
             throw new ApiError(500 , err.message)
         }
     }
-
-    async 
 
 }
 
