@@ -101,7 +101,6 @@ const showAllExpense = asyncHandler(async (req, res) => {
         userId
     }
     const getAllExpenses = await paginate(Expense, options)
-
     if (!getAllExpenses.fetchedDoc.length) {
         return res.status(200)
             .json(

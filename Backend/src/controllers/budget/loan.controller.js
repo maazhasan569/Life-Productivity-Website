@@ -77,7 +77,8 @@ const getLoansByCategory = asyncHandler(async (req, res) => {
         category,
         userId
     }
-
+    const loan = new LoanService(userId)
+    await loan.setOverdueStatus()
     const loansData = await paginate(Loan, options)
     if (!loansData.fetchedDoc.length) {
         throw new ApiError(404, "Loans not found")

@@ -49,7 +49,7 @@ const getAllGoals = asyncHandler(async (req, res) => {
         userId
     }
     const goal = new GoalService(userId)
-    await goal.setunachievedStatus()
+    await goal.setUnachievedStatus()
     const goalsData = await paginate(Goal, options)
     if (!goalsData.fetchedDoc.length) {
         throw new ApiError(404, "Goals not found")
