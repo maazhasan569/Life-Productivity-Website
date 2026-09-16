@@ -175,6 +175,7 @@ export class LoanService {
                         const thisMonth = today.getMonth()
                         if (lastMonth === thisMonth) continue;
 
+
                         if (loan.totalDeductions === this.duration) {
                             if (this.loanTargetAmt === this.totalPaid) {
                                 loan.status = "Completed"
@@ -256,6 +257,16 @@ export class LoanService {
             const thisMonth = new Date().getMonth()
             if (lastMonth === thisMonth) throw new ApiError(400, "Loan monthly amt already paid")
 
+            if (this.loanTargetAmt === this.totalPaid && deadlineInMonths !== 0) {
+                deadlineInMonths = 0
+            }
+            if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
+                if (this.loanTargetAmt !== this.totalPaid) throw new ApiError(400, "Loan is overDued")
+                    loan.status = "Completed"
+                    const updatedLoan = await loan.save()
+                    await pushToHistory(this.user, updatedLoan._id, "loans")
+                    return {updatedLoan , pushToHistory : true}
+            }
             if (!amount || amount < 0) {
                 throw new ApiError(400, "Enter not given or Invalid amount")
             }
@@ -283,28 +294,10 @@ export class LoanService {
             loan.totalDeductions += 1
             user.netIncome -= amount
 
-            if (this.loanTargetAmt === this.totalPaid && deadlineInMonths !== 0) {
-                deadlineInMonths = 0
-            }
-
-            if (loan.totalDeductions + 1 > deadlineInMonths || loan.totalDeductions + 1 === this.duration) {
-                const status = this.loanTargetAmt !== this.totalPaid ?
-                    "Overdue" : "Completed"
-
-                loan.status = status
-                const updatedLoan = await loan.save()
-                const updatedUser = await user.save()
-                if (status === "Completed") {
-                    await pushToHistory(this.userId, loan._id, "loans")
-                    return { updatedLoan, updatedUser, pushedToHistory: true }
-                }
-
-                return { updatedLoan, updatedUser, pushedToHistory: false }
-            }
 
             const updatedLoan = await loan.save()
             const updatedUser = await user.save()
-            return { updatedLoan, updatedUser, pushedToHistory: false }
+            return { updatedLoan, updatedUser , pushedToHistory : false }
         } catch (err) {
             throw new ApiError(500, err.message)
         }
@@ -413,8 +406,8 @@ export class LoanService {
 
                 }
             }
-        }catch(err){
-            throw new ApiError(500 , err.message)
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
-}
+    }
 }
