@@ -6,7 +6,7 @@ class TaskService {
     constructor(userId, config = {}) {
         this.userId = userId
         this.taskName = config.taskName,
-            this.taskDescription = config.taskDescription
+        this.taskDescription = config.taskDescription
         this.category = config.category
     }
 
@@ -22,6 +22,7 @@ class TaskService {
                 description: this.taskDescription,
                 category: this.category,
                 status: "in_progress"
+                //add due date in this do . optional for user
                 //document and due date to be added
             })
             return newTask
@@ -83,22 +84,43 @@ class TaskService {
 
     }
 
-    async setTaskCompleted(isCompleted){
+    async setTaskCompleted(taskId) {
         //user presses the btn on the frontend
         //an api is called
         // api runs a db query
         //set task as completed if the task is not a due a date task
         //or due date hasnot reached
-}
+        try{
+            const task = await Task.findByOne({
+            userId: this.userId,
+            _id: taskId
+        })
 
-    async changeStatus(){
+        if(task.status !== "in_progress") 
+        throw new ApiError(400 , "task is overdued ") 
+
+        task.status = "Completed"
+        const updatedTask = await task.save({})
+        await pushToHistory(this.userId , taskId , "tasks" )
+
+        return updatedTask
+
+        }catch(err){
+            throw new ApiError(500 , err.message)
+        }
+
+    }
+
+    async changeStatus() {
         //get all the tasks 
-        //run crone on them
         //mark task overdue when the due date been reached
+
+        const tasks = await Task.find({userId : this.userId})
+
     }
 
     //combine doc servive . to allow adding doc inside todo list
 
 }
 
-    
+

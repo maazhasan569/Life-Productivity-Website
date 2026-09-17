@@ -20,10 +20,10 @@ const taskSchema = new mongoose.Schema({
     status : {
         type : String,
         required : true,
-        default : "Pending",
-        enum : ["Pending" , "Completed" , "Deleted"]
+        default : "in_progress",
+        enum : ["in_progress" , "Completed" , "Deleted"]
     },
-    reminder : {
+    dueDate : {
         type : Date,
     },
     document : {
