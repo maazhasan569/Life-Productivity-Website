@@ -7,7 +7,7 @@ class TaskService {
     constructor(userId, config = {}) {
         this.userId = userId
         this.taskName = config.taskName,
-            this.taskDescription = config.taskDescription
+        this.taskDescription = config.taskDescription
         this.category = config.category
         this.dueDate = dueDate
 
@@ -37,7 +37,7 @@ class TaskService {
             if (!this.taskName) {
                 throw new ApiError(400, "task name is required")
             }
-
+            
             this.dueDate = this.duethis.calculateDueDate(val, unit)
 
             const newTask = await Task.create({

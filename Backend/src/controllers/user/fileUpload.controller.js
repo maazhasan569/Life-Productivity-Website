@@ -90,28 +90,7 @@ const deleteFile = asyncHandler(async (req, res) => {
     //if 
     const { id } = req.params
     const typeKey = req.body.type?.toLowerCase()
-    if (!typeKey || !["document", "avatar"].includes(typeKey)) {
-        throw new ApiError(400, "No file type found (doc/avatar)")
-    }
-    const config = {
-        document: { model: Document, field: "document", id },
-        avatar: { model: Users, field: "avatar", id: req.user._id }
-    }
-    const selectedType = config[typeKey]
-
-    const existingFile = await selectedType.model.findById(selectedType.id)
-    if (!existingFile) {
-        throw new ApiError(400, "No file found")
-    }
-    await deleteFromCloudinary(existingFile.publicId)
-
-    const response = selectedType.field === "document" ?
-        await selectedType.model.findByIdAndDelete(selectedType.id)
-        : await selectedType.model.findByIdAndUpdate(
-            selectedType.id,
-            { $unset: { avatar: 1, publicId: 1 } },
-            { new: true },
-        )
+    
 
 
     return res.status(200)
