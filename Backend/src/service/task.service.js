@@ -3,8 +3,10 @@ import { Task } from "../models/dailyLife/task.models"
 import { isValidObjectId } from "mongoose"
 import pushToHistory from "../utils/pushToHistory"
 import cron from "node-cron"
-class TaskService {
+import { FileService } from "./fileUpload.service"
+class TaskService extends FileService{
     constructor(userId, config = {}) {
+        super(userId, config.fileType , config.filePath)
         this.userId = userId
         this.taskName = config.taskName,
         this.taskDescription = config.taskDescription
@@ -37,9 +39,15 @@ class TaskService {
             if (!this.taskName) {
                 throw new ApiError(400, "task name is required")
             }
-            
-            this.dueDate = this.duethis.calculateDueDate(val, unit)
 
+            if(!val && !unit){
+                this.dueDate = this.calculateDueDate(val, unit)
+            }
+
+            let fileData = {fileUrl : null , filePath : null}
+            if(this.filePath){
+                fileData = await this.uploadFile() 
+            }
             const newTask = await Task.create({
                 userId: this.userId,
                 name: this.taskName,
@@ -47,6 +55,8 @@ class TaskService {
                 category: this.category,
                 status: "in_progress",
                 dueDate: this.dueDate,
+                document : fileData.fileUrl,
+                publicId : fileData.publicId
                 //add due date in this do . optional for user
                 //document and due date to be added
             })
@@ -70,12 +80,22 @@ class TaskService {
             if (!this.taskName) {
                 throw new ApiError(400, "task name is required")
             }
+
+            
+            this.dueDate = this.duethis.calculateDueDate(val, unit)
+            let fileData = {fileUrl : null , filePath : null}
+            if(this.filePath){
+                fileData = await this.updateFile(taskId , "Task") 
+            }
             const updatedTask = await Task.findOneAndUpdate(
                 { _id: taskId },
                 {
                     name: this.name,
                     description: this.taskDescription,
-                    category: this.category
+                    category: this.category,
+                    dueDate : this.dueDate,
+                    document : fileData.fileUrl,
+                    publicId : fileData.publicId
                 },
                 { returnDocument: 'after' }
             )
@@ -98,6 +118,7 @@ class TaskService {
         try {
 
             const task = await Task.findById(taskId)
+            await this.deleteFile(taskId , "Task")
             task.status = "Deleted"
             await task.save()
             const deletedTask = await Task.findByIdAndDelete(taskId)

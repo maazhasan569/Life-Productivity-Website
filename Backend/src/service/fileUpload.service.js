@@ -1,6 +1,6 @@
 import ApiError from "../utils/ApiError"
 
-class FileService {
+export class FileService {
     constructor(userId, fileType, filePath) {
         this.fileType = fileType
         this.filePath = filePath
@@ -58,17 +58,11 @@ class FileService {
 
     async deleteFile(id , Model) {
         try {
-            if (!this.fileType || !["document", "avatar"].includes(this.fileType)) {
-                throw new ApiError(400, "No file type found (doc/avatar)")
-            }
+            
 
             const modelRecord = await Model.findById(id)
-            if (!modelRecord.document) {
-                throw new ApiError(400, "No file found")
-            }
+            if(!modelRecord.document && !modelRecord.publicId) return {}
             await this.deleteFromCloudinary(modelRecord.publicId)
-
-           
             const response = await Model.findByIdAndUpdate(
                 id,
                 {
