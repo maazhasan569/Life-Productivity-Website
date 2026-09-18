@@ -8,20 +8,44 @@ class TaskService {
         this.taskName = config.taskName,
         this.taskDescription = config.taskDescription
         this.category = config.category
+        this.dueDate = dueDate
+        
     }
 
-    async createTask() {
+    calculateDueDate(val , unit){
+        const currentDate = new Date
+
+        switch (unit.toLowerCase()) {
+            case "hours":
+                currentDate.setHours(currentDate.getHours() + val)
+                break;
+
+            case "days":
+                currentDate.setDate(currentDate.getDate() + val)
+                break;
+            
+            case "month":
+                currentDate.setMonth(currentDate.setMonth() + val)
+
+            default:
+                throw new ApiError(400 , "Invalid unit provided")
+        }
+    }
+    async createTask(val , unit) {
         try {
             if (!this.taskName) {
                 throw new ApiError(400, "task name is required")
             }
+
+            this.dueDate = this.duethis.calculateDueDate(val , unit)
 
             const newTask = await Task.create({
                 userId: this.userId,
                 name: this.taskName,
                 description: this.taskDescription,
                 category: this.category,
-                status: "in_progress"
+                status: "in_progress",
+                dueDate : this.dueDate,
                 //add due date in this do . optional for user
                 //document and due date to be added
             })
