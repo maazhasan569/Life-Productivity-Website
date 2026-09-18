@@ -21,10 +21,14 @@ const taskSchema = new mongoose.Schema({
         type : String,
         required : true,
         default : "in_progress",
-        enum : ["in_progress" , "Completed" , "Deleted"]
+        enum : ["in_progress" , "Completed" , "Deleted" , "Overdue"]
     },
     dueDate : {
         type : Date,
+    },
+    dueDateUnit : {
+        type : String,
+        enum : ["hours" , "days" , "months"]
     },
     document : {
         type : String, // cloudinary url

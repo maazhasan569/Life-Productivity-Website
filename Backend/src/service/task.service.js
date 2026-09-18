@@ -2,17 +2,18 @@ import ApiError from "../utils/ApiError"
 import { Task } from "../models/dailyLife/task.models"
 import { isValidObjectId } from "mongoose"
 import pushToHistory from "../utils/pushToHistory"
+import cron from "node-cron"
 class TaskService {
     constructor(userId, config = {}) {
         this.userId = userId
         this.taskName = config.taskName,
-        this.taskDescription = config.taskDescription
+            this.taskDescription = config.taskDescription
         this.category = config.category
         this.dueDate = dueDate
-        
+
     }
 
-    calculateDueDate(val , unit){
+    calculateDueDate(val, unit) {
         const currentDate = new Date
 
         switch (unit.toLowerCase()) {
@@ -23,21 +24,21 @@ class TaskService {
             case "days":
                 currentDate.setDate(currentDate.getDate() + val)
                 break;
-            
-            case "month":
+
+            case "months":
                 currentDate.setMonth(currentDate.setMonth() + val)
 
             default:
-                throw new ApiError(400 , "Invalid unit provided")
+                throw new ApiError(400, "Invalid unit provided")
         }
     }
-    async createTask(val , unit) {
+    async createTask(val, unit) {
         try {
             if (!this.taskName) {
                 throw new ApiError(400, "task name is required")
             }
 
-            this.dueDate = this.duethis.calculateDueDate(val , unit)
+            this.dueDate = this.duethis.calculateDueDate(val, unit)
 
             const newTask = await Task.create({
                 userId: this.userId,
@@ -45,7 +46,7 @@ class TaskService {
                 description: this.taskDescription,
                 category: this.category,
                 status: "in_progress",
-                dueDate : this.dueDate,
+                dueDate: this.dueDate,
                 //add due date in this do . optional for user
                 //document and due date to be added
             })
@@ -114,23 +115,23 @@ class TaskService {
         // api runs a db query
         //set task as completed if the task is not a due a date task
         //or due date hasnot reached
-        try{
+        try {
             const task = await Task.findByOne({
-            userId: this.userId,
-            _id: taskId
-        })
+                userId: this.userId,
+                _id: taskId
+            })
 
-        if(task.status !== "in_progress") 
-        throw new ApiError(400 , "task is overdued ") 
+            if (task.status !== "in_progress")
+                throw new ApiError(400, "task is overdued ")
 
-        task.status = "Completed"
-        const updatedTask = await task.save({})
-        await pushToHistory(this.userId , taskId , "tasks" )
+            task.status = "Completed"
+            const updatedTask = await task.save()
+            await pushToHistory(this.userId, taskId, "tasks")
 
-        return updatedTask
+            return updatedTask
 
-        }catch(err){
-            throw new ApiError(500 , err.message)
+        } catch (err) {
+            throw new ApiError(500, err.message)
         }
 
     }
@@ -139,7 +140,22 @@ class TaskService {
         //get all the tasks 
         //mark task overdue when the due date been reached
 
-        const tasks = await Task.find({userId : this.userId})
+        try {
+            cron.schedule("0 * * * * ", async () => {
+                const tasks = await Task.find({ userId: this.userId })
+                for (const task of tasks) {
+                    const currentDate = new Date()
+                    const dueDate = new Date(task.dueDate)
+                    if (currentDate <= dueDate) return;
+
+                    if (currentDate >= dueDate) task.status = "Overdue"
+                    await task.save()
+                    return task
+                }
+            })
+        } catch (err) {
+            throw new ApiError(400, err.message)
+        }
 
     }
 
