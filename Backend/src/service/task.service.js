@@ -26,8 +26,8 @@ export class TaskService extends FileService {
                 if (!field) return !field
             })
 
-        if(fieldCheck){
-            throw new ApiError(400 , "All fields required")
+        if (fieldCheck) {
+            throw new ApiError(400, "All fields required")
         }
         if (this.dateValue < 0) {
             throw new ApiError(400, "Invalid date value")
@@ -53,14 +53,12 @@ export class TaskService extends FileService {
                 throw new ApiError(400, "Invalid unit provided")
         }
     }
-    async createTask(val, unit) {
+    async createTask() {
         try {
-            if (!this.taskName) {
-                throw new ApiError(400, "task name is required")
-            }
 
-            if (val && unit) {
-                this.dueDate = this.calculateDueDate(val, unit)
+            this.validateTask()
+            if (this.dateValue && this.dueDateUnit) {
+                this.dueDate = this.calculateDueDate(this.dateValue, this.dueDateUnit)
             }
 
             let fileData = { fileUrl: null, filePath: null }
