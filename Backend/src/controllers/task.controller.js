@@ -95,3 +95,26 @@ const markTaskComplete = asyncHandler(async(req,res)=> {
         new ApiResponse(200 , "task status marked to complete" , updateTaskStatus)
     )
 })
+
+const markTaskOverDue = asyncHandler(async(req,res)=>{
+
+    const userId = req.user._id
+    const {taskId} = req.params
+
+    const task = new TaskService(userId)
+    const updateTaskStatus = await task.setTaskOverDue(taskId)
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "task status marked to overdue" , updateTaskStatus)
+    )
+
+})
+
+export {
+    createTask,
+    editTask,
+    deleteTask,
+    markTaskComplete,
+    markTaskOverDue,
+}

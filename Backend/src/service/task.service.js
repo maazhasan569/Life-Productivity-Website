@@ -175,7 +175,7 @@ export class TaskService extends FileService {
 
     }
 
-    async changeStatus() {
+    async setTaskOverDue() {
         //get all the tasks 
         //mark task overdue when the due date been reached
 
