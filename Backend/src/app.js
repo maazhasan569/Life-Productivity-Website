@@ -21,11 +21,13 @@ import userRouter from "./routes/user/user.route.js"
 import expenseRouter from "./routes/budget/expense.route.js"
 import goalRouter from "./routes/budget/goal.route.js"
 import loanRouter from "./routes/budget/loan.route.js"
+import taskRouter from  "./routes/task.route.js"
 app.use("/api/v1/auth" , authRouter)
 app.use("/api/v1/user" , userRouter)
 app.use("/api/v1/expenses", expenseRouter)
 app.use("/api/v1/goals",goalRouter)
 app.use("/api/v1/loans", loanRouter)
+app.use("/api/v1/loans" ,taskRouter )
 // app.use((err, req, res, next) => {
 //     let statusCode = err.statusCode || 500;
 //     let message = err.message || "Internal Server Error";

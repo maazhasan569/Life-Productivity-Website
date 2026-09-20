@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { verfiyJWTAccessToken } from "../../middlewares/verifyJWT.middleware.js";
-import { upload } from "../../middlewares/multer.middleware.js";
-import { verifyDiskFile } from "../../middlewares/verifyDiskFile.js";
-import { deleteTask, editTask } from "../controllers/task.controller.js";
+import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
+import { verifyDiskFile } from "../middlewares/verifyDiskFile.js";
+import { deleteTask, editTask, createTask, markTaskComplete, markTaskOverDue } from "../controllers/task.controller.js";
 
 
 const router = Router()
@@ -26,12 +26,13 @@ router.route("/:taskId").delete(
     deleteTask
 )
 
-router.route("/mark-complete/:taskId").post(
+router.route("/tasks/:taskId/mark-complete").post(
     verfiyJWTAccessToken,
     markTaskComplete
 )
 
-router.route("/mark-overdue/:taskId").post(
+router.route("/tasks/:taskId/mark-overdue").post(
     verfiyJWTAccessToken,
-    markTaskComplete
+    markTaskOverDue
 )
+export default router
