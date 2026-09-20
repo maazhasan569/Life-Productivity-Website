@@ -46,6 +46,8 @@ const editTask = asyncHandler(async(req,res)=> {
     } = req.body
     const userId = req.user._id
     const {taskId} = req.params
+
+
     const task = new TaskService(userId , {
         taskName,
         taskDescription,
@@ -65,3 +67,31 @@ const editTask = asyncHandler(async(req,res)=> {
     )
 })
 
+const deleteTask = asyncHandler(async (req,res) =>{
+    const userId = req.user._id
+    const {taskId} = req.params
+
+
+    const task = new TaskService(userId)
+
+    const deletedTask = await task.delTask(taskId)
+
+    res.status(200)
+    .json(
+        new ApiResponse(200 , "task deleted" , deletedTask)
+    )
+})
+
+const markTaskComplete = asyncHandler(async(req,res)=> {
+
+    const userId = req.user._id
+    const {taskId} = req.params
+
+    const task = new TaskService(userId)
+    const updateTaskStatus = task.setTaskCompleted(taskId)
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200 , "task status marked to complete" , updateTaskStatus)
+    )
+})
