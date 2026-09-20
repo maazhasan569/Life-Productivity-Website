@@ -4,7 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 
 
 const createTask = asyncHandler(async(req,res) => {
-    const fileType = req.body.type?.toLowerCase()
+    const fileFieldName = req.file.fieldname?.toLowerCase()
     const filePath = req.filePath
     const {
         taskName,
@@ -22,7 +22,7 @@ const createTask = asyncHandler(async(req,res) => {
         dateValue,
         dueDateUnit,
         filePath,
-        fileType,
+        fileFieldName,
     })
 
     const newTask = await task.createTask()
@@ -35,7 +35,7 @@ const createTask = asyncHandler(async(req,res) => {
 
 const editTask = asyncHandler(async(req,res)=> {
 
-    const fileType = req.body.type?.toLowerCase()
+    const fileFieldName = req.file.fieldname?.toLowerCase()
     const filePath = req.filePath
     const {
         taskName,
@@ -55,7 +55,7 @@ const editTask = asyncHandler(async(req,res)=> {
         dateValue,
         dueDateUnit,
         filePath,
-        fileType,
+        fileFieldName,
     })
 
     
