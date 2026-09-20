@@ -4,15 +4,34 @@ import { isValidObjectId } from "mongoose"
 import pushToHistory from "../utils/pushToHistory"
 import cron from "node-cron"
 import { FileService } from "./fileUpload.service"
-class TaskService extends FileService{
+export class TaskService extends FileService {
     constructor(userId, config = {}) {
-        super(userId, config.fileType , config.filePath)
+        super(userId, config.fileType, config.filePath)
         this.userId = userId
         this.taskName = config.taskName,
-        this.taskDescription = config.taskDescription
+            this.taskDescription = config.taskDescription
         this.category = config.category
         this.dueDate = dueDate
+        this.dateValue = dateValue.config // e.g 2 month 2 is the val . 5 weeks 5 is the val
+        this.dueDateUnit = dueDateUnit.config
 
+    }
+
+    validateTask() {
+        const fieldCheck = [this.taskName, this.dateValue, this.dueDateUnit]
+            .some((field) => {
+                if (typeof field === 'string') {
+                    return !field || field.trim() === ""
+                }
+                if (!field) return !field
+            })
+
+        if(fieldCheck){
+            throw new ApiError(400 , "All fields required")
+        }
+        if (this.dateValue < 0) {
+            throw new ApiError(400, "Invalid date value")
+        }
     }
 
     calculateDueDate(val, unit) {
@@ -40,13 +59,13 @@ class TaskService extends FileService{
                 throw new ApiError(400, "task name is required")
             }
 
-            if(!val && !unit){
+            if (val && unit) {
                 this.dueDate = this.calculateDueDate(val, unit)
             }
 
-            let fileData = {fileUrl : null , filePath : null}
-            if(this.filePath){
-                fileData = await this.uploadFile() 
+            let fileData = { fileUrl: null, filePath: null }
+            if (this.filePath) {
+                fileData = await this.uploadFile()
             }
             const newTask = await Task.create({
                 userId: this.userId,
@@ -55,8 +74,8 @@ class TaskService extends FileService{
                 category: this.category,
                 status: "in_progress",
                 dueDate: this.dueDate,
-                document : fileData.fileUrl,
-                publicId : fileData.publicId
+                document: fileData.fileUrl,
+                publicId: fileData.publicId
                 //add due date in this do . optional for user
                 //document and due date to be added
             })
@@ -81,11 +100,11 @@ class TaskService extends FileService{
                 throw new ApiError(400, "task name is required")
             }
 
-            
+
             this.dueDate = this.duethis.calculateDueDate(val, unit)
-            let fileData = {fileUrl : null , filePath : null}
-            if(this.filePath){
-                fileData = await this.updateFile(taskId , "Task") 
+            let fileData = { fileUrl: null, filePath: null }
+            if (this.filePath) {
+                fileData = await this.updateFile(taskId, "Task")
             }
             const updatedTask = await Task.findOneAndUpdate(
                 { _id: taskId },
@@ -93,9 +112,9 @@ class TaskService extends FileService{
                     name: this.name,
                     description: this.taskDescription,
                     category: this.category,
-                    dueDate : this.dueDate,
-                    document : fileData.fileUrl,
-                    publicId : fileData.publicId
+                    dueDate: this.dueDate,
+                    document: fileData.fileUrl,
+                    publicId: fileData.publicId
                 },
                 { returnDocument: 'after' }
             )
@@ -118,7 +137,7 @@ class TaskService extends FileService{
         try {
 
             const task = await Task.findById(taskId)
-            await this.deleteFile(taskId , "Task")
+            await this.deleteFile(taskId, "Task")
             task.status = "Deleted"
             await task.save()
             const deletedTask = await Task.findByIdAndDelete(taskId)
