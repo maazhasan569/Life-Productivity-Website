@@ -1,5 +1,5 @@
-import ApiError from "../utils/ApiError"
-
+import ApiError from "../utils/ApiError.js"
+import { v2 as cloudinary } from "cloudinary"
 export class FileService {
     constructor(userId, fileType, filePath) {
         this.fileType = fileType

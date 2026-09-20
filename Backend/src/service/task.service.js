@@ -1,9 +1,9 @@
-import ApiError from "../utils/ApiError"
-import { Task } from "../models/dailyLife/task.models"
+import ApiError from "../utils/ApiError.js"
+import { Task } from "../models/dailyLife/task.models.js"
 import { isValidObjectId } from "mongoose"
-import pushToHistory from "../utils/pushToHistory"
+import pushToHistory from "../utils/pushToHistory.js"
 import cron from "node-cron"
-import { FileService } from "./fileUpload.service"
+import { FileService } from "./fileUpload.service.js"
 export class TaskService extends FileService {
     constructor(userId, config = {}) {
         super(userId, config.fileType, config.filePath)
@@ -32,7 +32,7 @@ export class TaskService extends FileService {
         if (this.dateValue < 0) {
             throw new ApiError(400, "Invalid date value")
         }
-        
+
     }
 
     calculateDueDate(val, unit) {
@@ -155,6 +155,10 @@ export class TaskService extends FileService {
         //set task as completed if the task is not a due a date task
         //or due date hasnot reached
         try {
+            if (!isValidObjectId(taskId)) {
+                throw new ApiError(400, "Invalid task id")
+            }
+
             const task = await Task.findByOne({
                 userId: this.userId,
                 _id: taskId
@@ -179,7 +183,12 @@ export class TaskService extends FileService {
         //get all the tasks 
         //mark task overdue when the due date been reached
 
+
         try {
+            if (!isValidObjectId(taskId)) {
+                throw new ApiError(400, "Invalid task id")
+            }
+
             cron.schedule("0 * * * * ", async () => {
                 const tasks = await Task.find({ userId: this.userId })
                 for (const task of tasks) {

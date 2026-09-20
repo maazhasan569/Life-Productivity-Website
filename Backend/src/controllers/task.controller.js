@@ -1,6 +1,6 @@
-import asyncHandler from "../utils/asyncHandler";
-import { TaskService } from "../service/task.service";
-import ApiResponse from "../utils/ApiResponse";
+import asyncHandler from "../utils/asyncHandler.js";
+import { TaskService } from "../service/task.service.js";
+import ApiResponse from "../utils/ApiResponse.js";
 
 
 const createTask = asyncHandler(async(req,res) => {
