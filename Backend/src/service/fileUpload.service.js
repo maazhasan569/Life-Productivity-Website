@@ -1,5 +1,6 @@
 import ApiError from "../utils/ApiError.js"
 import { v2 as cloudinary } from "cloudinary"
+import fileUpload from "../utils/fileUpload.js"
 export class FileService {
     constructor(userId, fileFieldName, filePath) {
         this.fileFieldName = fileFieldName
@@ -17,6 +18,7 @@ export class FileService {
           }
     } 
     async uploadFile() {
+       
         if (!this.fileFieldName || !["document", "avatar"].includes(this.fileFieldName)) {
             throw new ApiError(400, "No file type found (doc/avatar)")
         }

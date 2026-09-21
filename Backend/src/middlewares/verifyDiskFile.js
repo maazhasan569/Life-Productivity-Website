@@ -4,11 +4,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import fs from "fs"
 export const verifyDiskFile = asyncHandler(async (req, res, next) => {
 
-    if (!req.file) {
-        throw new ApiError(404, "No file given")
-    }
+    if (!req.file) return next()
     try {
-
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf']
         const detectedType = await fileTypeFromFile(req.file.path)
 
@@ -22,6 +19,6 @@ export const verifyDiskFile = asyncHandler(async (req, res, next) => {
 
         next()
     } catch (err) {
-        throw new ApiError(500, err.msg)
+        throw new ApiError(500, err.message)
     }
 })

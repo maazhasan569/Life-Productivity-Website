@@ -4,7 +4,8 @@ import ApiResponse from "../utils/ApiResponse.js";
 
 
 const createTask = asyncHandler(async(req,res) => {
-    const fileFieldName = req.file.fieldname?.toLowerCase()
+
+    const fileFieldName = req.file?.fieldname?.toLowerCase()
     const filePath = req.filePath
     const {
         taskName,
@@ -13,6 +14,7 @@ const createTask = asyncHandler(async(req,res) => {
         dateValue,
         dueDateUnit 
     } = req.body
+
     const userId = req.user._id
 
     const task = new TaskService(userId , {
@@ -26,7 +28,7 @@ const createTask = asyncHandler(async(req,res) => {
     })
 
     const newTask = await task.createTask()
-
+    console.log("runing...2222")
     return res.status(200)
     .json(
         new ApiResponse(200 , "new task created" , newTask)

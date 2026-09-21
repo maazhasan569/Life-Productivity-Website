@@ -6,14 +6,14 @@ import cron from "node-cron"
 import { FileService } from "./fileUpload.service.js"
 export class TaskService extends FileService {
     constructor(userId, config = {}) {
-        super(userId, config.fileType, config.filePath)
+        super(userId, config.fileFieldName, config.filePath)
         this.userId = userId
         this.taskName = config.taskName,
-            this.taskDescription = config.taskDescription
+        this.taskDescription = config.taskDescription
         this.category = config.category
-        this.dueDate = dueDate
-        this.dateValue = dateValue.config // e.g 2 month 2 is the val . 5 weeks 5 is the val
-        this.dueDateUnit = dueDateUnit.config
+        this.dueDate = null
+        this.dateValue = config.dateValue// e.g 2 month 2 is the val . 5 weeks 5 is the val
+        this.dueDateUnit = config.dueDateUnit
 
     }
 
@@ -25,7 +25,8 @@ export class TaskService extends FileService {
                 }
                 if (!field) return !field
             })
-
+            
+            console.log(this.dateValue)
         if (fieldCheck) {
             throw new ApiError(400, "All fields required")
         }
@@ -49,10 +50,11 @@ export class TaskService extends FileService {
 
             case "months":
                 currentDate.setMonth(currentDate.setMonth() + val)
-
+                break;
             default:
                 throw new ApiError(400, "Invalid unit provided")
         }
+        return currentDate
     }
     async createTask() {
         try {
@@ -78,6 +80,7 @@ export class TaskService extends FileService {
                 //add due date in this do . optional for user
                 //document and due date to be added
             })
+            
             return newTask
         } catch (err) {
             throw new ApiError(500, err.message)
