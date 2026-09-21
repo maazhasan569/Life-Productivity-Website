@@ -26,12 +26,12 @@ router.route("/:taskId").delete(
     deleteTask
 )
 
-router.route("/tasks/:taskId/mark-complete").post(
+router.route("/:taskId/mark-complete").put(
     verfiyJWTAccessToken,
     markTaskComplete
 )
 
-router.route("/tasks/:taskId/mark-overdue").post(
+router.route("/:taskId/mark-overdue").put(
     verfiyJWTAccessToken,
     markTaskOverDue
 )

@@ -37,19 +37,25 @@ export class TaskService extends FileService {
     }
 
     calculateDueDate(val, unit) {
-        const currentDate = new Date
-
+        const currentDate = new Date()
+        
+        const numericalVal = parseInt(val , 10)
+        if(isNaN(numericalVal)){
+            throw new ApiError("invalid date value. it must be number")
+        }
+        
         switch (unit.toLowerCase()) {
             case "hours":
-                currentDate.setHours(currentDate.getHours() + val)
+                currentDate.setHours(currentDate.getHours() + numericalVal)
+                console.log(currentDate)
                 break;
 
             case "days":
-                currentDate.setDate(currentDate.getDate() + val)
+                currentDate.setDate(currentDate.getDate() + numericalVal)
                 break;
 
             case "months":
-                currentDate.setMonth(currentDate.setMonth() + val)
+                currentDate.setMonth(currentDate.getMonth() + numericalVal)
                 break;
             default:
                 throw new ApiError(400, "Invalid unit provided")
@@ -162,7 +168,7 @@ export class TaskService extends FileService {
                 throw new ApiError(400, "Invalid task id")
             }
 
-            const task = await Task.findByOne({
+            const task = await Task.findOne({
                 userId: this.userId,
                 _id: taskId
             })
@@ -182,7 +188,7 @@ export class TaskService extends FileService {
 
     }
 
-    async setTaskOverDue() {
+    async setTaskOverDue(taskId) {
         //get all the tasks 
         //mark task overdue when the due date been reached
 

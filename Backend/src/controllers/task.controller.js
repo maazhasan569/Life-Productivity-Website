@@ -14,7 +14,7 @@ const createTask = asyncHandler(async(req,res) => {
         dateValue,
         dueDateUnit 
     } = req.body
-
+    console.log(req.body)
     const userId = req.user._id
 
     const task = new TaskService(userId , {
@@ -90,7 +90,7 @@ const markTaskComplete = asyncHandler(async(req,res)=> {
     const {taskId} = req.params
 
     const task = new TaskService(userId)
-    const updateTaskStatus = task.setTaskCompleted(taskId)
+    const updateTaskStatus = await task.setTaskCompleted(taskId)
 
     return res.status(200)
     .json(
