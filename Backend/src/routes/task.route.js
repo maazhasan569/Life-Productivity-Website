@@ -44,8 +44,4 @@ router.route("/:taskId/mark-complete").put(
     markTaskComplete
 )
 
-router.route("/:taskId/mark-overdue").put(
-    verfiyJWTAccessToken,
-    markTaskOverDue
-)
 export default router

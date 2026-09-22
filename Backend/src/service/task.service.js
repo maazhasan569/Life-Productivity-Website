@@ -190,16 +190,13 @@ export class TaskService extends FileService {
 
     }
 
-    async setTaskOverDue(taskId) {
+    async setTaskOverDue() {
         //get all the tasks 
         //mark task overdue when the due date been reached
 
 
         try {
-            if (!isValidObjectId(taskId)) {
-                throw new ApiError(400, "Invalid task id")
-            }
-
+            
             cron.schedule("0 * * * * ", async () => {
                 const tasks = await Task.find({ userId: this.userId })
                 for (const task of tasks) {

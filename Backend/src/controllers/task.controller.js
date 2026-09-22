@@ -2,7 +2,6 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { TaskService } from "../service/task.service.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Task } from "../models/dailyLife/task.models.js";
-import { Goal } from "../models/budget/goals.models.js";
 import ApiError from "../utils/ApiError.js";
 import { paginate } from "../utils/pagination.js";
 
@@ -18,8 +17,8 @@ const getAllTasks = asyncHandler(async (req, res) => {
         userId
     }
 
-    // const task = new TaskService(userId)
-    // await task.setTaskOverDue()
+     const task = new TaskService(userId)
+     await task.setTaskOverDue()
     const taskData = await paginate(Task, options)
 
     if (!taskData.fetchedDoc.length) {
@@ -162,27 +161,12 @@ const markTaskComplete = asyncHandler(async (req, res) => {
         )
 })
 
-const markTaskOverDue = asyncHandler(async (req, res) => {
-
-    const userId = req.user._id
-    const { taskId } = req.params
-
-    const task = new TaskService(userId)
-    const updateTaskStatus = await task.setTaskOverDue(taskId)
-
-    return res.status(200)
-        .json(
-            new ApiResponse(200, "task status marked to overdue", updateTaskStatus)
-        )
-
-})
 
 export {
     createTask,
     editTask,
     deleteTask,
     markTaskComplete,
-    markTaskOverDue,
     getAllTasks,
     getTaskByCategory,
     getTaskById
