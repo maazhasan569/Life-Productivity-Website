@@ -70,10 +70,12 @@ export class TaskService extends FileService {
                 this.dueDate = this.calculateDueDate(this.dateValue, this.dueDateUnit)
             }
 
-            let fileData = { fileUrl: null, filePath: null }
+            let fileData = { fileUrl: null, publicId: null }
             if (this.filePath) {
                 fileData = await this.uploadFile()
             }
+
+            console.log(fileData.publicId)
             const newTask = await Task.create({
                 userId: this.userId,
                 name: this.taskName,
@@ -108,8 +110,9 @@ export class TaskService extends FileService {
                 throw new ApiError(400, "task name is required")
             }
 
-
+            if(this.dueDate && this.dateValue){
             this.dueDate = this.duethis.calculateDueDate(val, unit)
+            }
             let fileData = { fileUrl: null, filePath: null }
             if (this.filePath) {
                 fileData = await this.updateFile(taskId, "Task")
@@ -117,7 +120,7 @@ export class TaskService extends FileService {
             const updatedTask = await Task.findOneAndUpdate(
                 { _id: taskId },
                 {
-                    name: this.name,
+                    name: this.taskName,
                     description: this.taskDescription,
                     category: this.category,
                     dueDate: this.dueDate,
@@ -126,7 +129,6 @@ export class TaskService extends FileService {
                 },
                 { returnDocument: 'after' }
             )
-
             return updatedTask
         } catch (err) {
             throw new ApiError(500, err.message)

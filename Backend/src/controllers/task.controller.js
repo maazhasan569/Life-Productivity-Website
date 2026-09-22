@@ -37,7 +37,7 @@ const createTask = asyncHandler(async(req,res) => {
 
 const editTask = asyncHandler(async(req,res)=> {
 
-    const fileFieldName = req.file.fieldname?.toLowerCase()
+    const fileFieldName = req.file?.fieldname?.toLowerCase()
     const filePath = req.filePath
     const {
         taskName,
@@ -46,6 +46,8 @@ const editTask = asyncHandler(async(req,res)=> {
         dateValue,
         dueDateUnit 
     } = req.body
+
+   console.log(req.body)
     const userId = req.user._id
     const {taskId} = req.params
 

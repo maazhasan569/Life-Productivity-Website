@@ -32,6 +32,9 @@ const taskSchema = new mongoose.Schema({
     },
     document : {
         type : String, // cloudinary url
+    },
+    publicId:{
+        type : String
     }
 } , {
     timestamps : true
