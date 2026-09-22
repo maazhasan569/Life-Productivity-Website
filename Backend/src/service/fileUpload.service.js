@@ -61,7 +61,7 @@ export class FileService {
     async deleteFile(id , Model) {
         try {
             
-
+            
             const modelRecord = await Model.findById(id)
             if(!modelRecord.document && !modelRecord.publicId) return {}
             await this.deleteFromCloudinary(modelRecord.publicId)

@@ -147,7 +147,7 @@ export class TaskService extends FileService {
         try {
 
             const task = await Task.findById(taskId)
-            await this.deleteFile(taskId, "Task")
+            await this.deleteFile(taskId, Task)
             task.status = "Deleted"
             await task.save()
             const deletedTask = await Task.findByIdAndDelete(taskId)
