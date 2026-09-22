@@ -4,7 +4,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { Task } from "../models/dailyLife/task.models.js";
 import { Goal } from "../models/budget/goals.models.js";
 import ApiError from "../utils/ApiError.js";
-
+import { paginate } from "../utils/pagination.js";
 
 
 const getAllTasks = asyncHandler(async (req, res) => {
@@ -18,8 +18,8 @@ const getAllTasks = asyncHandler(async (req, res) => {
         userId
     }
 
-    const task = new TaskService(userId)
-    await task.setTaskOverDue()
+    // const task = new TaskService(userId)
+    // await task.setTaskOverDue()
     const taskData = await paginate(Task, options)
 
     if (!taskData.fetchedDoc.length) {
@@ -32,7 +32,7 @@ const getAllTasks = asyncHandler(async (req, res) => {
         )
 })
 
-const getTaskByCategory = asyncHandler(async () => {
+const getTaskByCategory = asyncHandler(async (req,res) => {
     const { page = 1, limit = 10, sortBy, sortType, category} = req.query
     const userId = req.user._id
     const options = {
@@ -44,20 +44,22 @@ const getTaskByCategory = asyncHandler(async () => {
         category,
     }
 
-    const task = new TaskService(userId)
-    await task.setTaskOverDue()
     const taskData = await paginate(Task, options)
 
     if (!taskData.fetchedDoc.length) {
         throw new ApiError(404, "Task not found")
     }
 
+    res.status(200)
+        .json(
+            new ApiResponse(200, "tasks fetched by category", taskData)
+        )
 })
 
 const getTaskById = asyncHandler(async(req,res) => {
     const { taskId } = req.params
     const userId = req.user._id
-    const getTask = await Goal.findOne({ _id : taskId, userId })
+    const getTask = await Task.findOne({ _id : taskId, userId })
     res.status(200)
         .json(
             new ApiResponse(200, getTask ? "Task fetched" : "Task not found by Id", getTask)
@@ -181,4 +183,7 @@ export {
     deleteTask,
     markTaskComplete,
     markTaskOverDue,
+    getAllTasks,
+    getTaskByCategory,
+    getTaskById
 }

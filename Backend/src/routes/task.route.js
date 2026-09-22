@@ -2,11 +2,20 @@ import { Router } from "express";
 import { verfiyJWTAccessToken } from "../middlewares/verifyJWT.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyDiskFile } from "../middlewares/verifyDiskFile.js";
-import { deleteTask, editTask, createTask, markTaskComplete, markTaskOverDue } from "../controllers/task.controller.js";
+import { deleteTask, editTask, createTask, markTaskComplete, markTaskOverDue, getAllTasks, getTaskByCategory, getTaskById } from "../controllers/task.controller.js";
 
 
 const router = Router()
 
+router.route("/").get(
+    verfiyJWTAccessToken,
+    getAllTasks
+)
+
+router.route("/category").get(
+    verfiyJWTAccessToken,
+    getTaskByCategory
+)
 router.route("/create-task").post(
     verfiyJWTAccessToken,
     upload.single("document"),
@@ -26,6 +35,10 @@ router.route("/:taskId").delete(
     deleteTask
 )
 
+router.route("/:taskId").get(
+    verfiyJWTAccessToken,
+    getTaskById
+)
 router.route("/:taskId/mark-complete").put(
     verfiyJWTAccessToken,
     markTaskComplete
